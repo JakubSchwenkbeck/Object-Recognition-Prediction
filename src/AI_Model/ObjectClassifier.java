@@ -1,7 +1,9 @@
+package AI_Model;
+
 import org.opencv.core.Mat;
 
 /**
- * The {@code ObjectClassifier} class contains methods for classifying objects
+ * The {@code AI_Model.ObjectClassifier} class contains methods for classifying objects
  * in video frames using AI.
  */
 public class ObjectClassifier {
