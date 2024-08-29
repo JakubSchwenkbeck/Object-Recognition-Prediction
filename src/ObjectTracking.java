@@ -8,14 +8,17 @@ import org.opencv.videoio.VideoCapture;
 import org.opencv.highgui.HighGui;
 import org.opencv.core.CvType;
 
+/**
+ * The {@code ObjectTracking} class demonstrates basic functionality of OpenCV,
+ * including displaying a static image, initializing the camera, capturing video frames,
+ * and performing simple object tracking by drawing a bounding box.
+ */
 public class ObjectTracking {
 
     static {
-
         try {
-            // Attempt to load the OpenCV library
+            // Load the OpenCV library
             System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
-
             System.out.println("OpenCV library loaded successfully.");
         } catch (UnsatisfiedLinkError e) {
             System.err.println("Error: Could not load OpenCV library.");
@@ -24,18 +27,25 @@ public class ObjectTracking {
         }
     }
 
+    /**
+     * The main method initializes the OpenCV library, tests HighGui functionality
+     * with a static image, initializes the camera for video capture, processes each frame
+     * to convert it to grayscale and draw a bounding box, and displays the video feed.
+     *
+     * @param args Command line arguments (not used).
+     */
     public static void main(String[] args) {
-        // Step 1: Test HighGui with a Static Image
+        // Test HighGui with a static image
         System.out.println("Testing HighGui with a static image...");
-        Mat testImage = Mat.ones(400, 400,CvType.CV_8UC3);
+        Mat testImage = Mat.ones(400, 400, CvType.CV_8UC3);
         Imgproc.rectangle(testImage, new Point(50, 50), new Point(350, 350), new Scalar(255, 0, 0), 5);
         HighGui.imshow("Test Image", testImage);
         HighGui.waitKey(0);
         HighGui.destroyAllWindows();
 
-        // Step 2: Initialize Camera
+        // Initialize Camera
         System.out.println("Initializing camera...");
-        VideoCapture capture = new VideoCapture(0); // Try changing index to 1 or 2 if it fails
+        VideoCapture capture = new VideoCapture(0); // Change index if necessary
 
         if (!capture.isOpened()) {
             System.err.println("Error: Camera not found or cannot be opened.");
@@ -44,7 +54,7 @@ public class ObjectTracking {
             System.out.println("Camera initialized successfully.");
         }
 
-        // Step 3: Test Frame Capture
+        // Test Frame Capture
         System.out.println("Testing frame capture...");
         Mat frame = new Mat();
         Mat gray = new Mat();
