@@ -11,7 +11,7 @@ import org.opencv.core.Core;
  * The {@code ObjectTrackingApp} class initializes the components and coordinates
  * video capture, frame processing, and object classification.
  */
-public class ObjectTrackingApp {
+public class Main {
 
     public static void main(String[] args) {
         // Initialize OpenCV library
