@@ -2,56 +2,70 @@ import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
+import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.videoio.VideoCapture;
 import org.opencv.highgui.HighGui;
+import org.opencv.core.CvType;
 
-/**
- * The {@code ObjectTracking} class captures video from the default camera,
- * performs basic object tracking, and displays the video feed with an example
- * bounding box drawn on the frame.
- */
 public class ObjectTracking {
 
-    static { System.loadLibrary(Core.NATIVE_LIBRARY_NAME); }
+    static {
 
-    /**
-     * Main method that initializes video capture, processes each frame to
-     * detect and track objects, and displays the video feed.
-     *
-     * @param args Command line arguments (not used).
-     */
+        try {
+            // Attempt to load the OpenCV library
+            System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
+            System.out.println("OpenCV library loaded successfully.");
+        } catch (UnsatisfiedLinkError e) {
+            System.err.println("Error: Could not load OpenCV library.");
+            e.printStackTrace();
+            System.exit(1);
+        }
+    }
+
     public static void main(String[] args) {
-        // Open video capture from the default camera
-        VideoCapture capture = new VideoCapture(0);
+        // Step 1: Test HighGui with a Static Image
+        System.out.println("Testing HighGui with a static image...");
+        Mat testImage = Mat.ones(400, 400,CvType.CV_8UC3);
+        Imgproc.rectangle(testImage, new Point(50, 50), new Point(350, 350), new Scalar(255, 0, 0), 5);
+        HighGui.imshow("Test Image", testImage);
+        HighGui.waitKey(0);
+        HighGui.destroyAllWindows();
 
-        // Check if the camera opened successfully
+        // Step 2: Initialize Camera
+        System.out.println("Initializing camera...");
+        VideoCapture capture = new VideoCapture(0); // Try changing index to 1 or 2 if it fails
+
         if (!capture.isOpened()) {
-            System.out.println("Error: Camera not found.");
+            System.err.println("Error: Camera not found or cannot be opened.");
             return;
+        } else {
+            System.out.println("Camera initialized successfully.");
         }
 
-        // Create a window for displaying the video feed
-        HighGui.namedWindow("Object Tracking", HighGui.WINDOW_AUTOSIZE);
-
-        // Create Mat objects for storing frames and grayscale images
+        // Step 3: Test Frame Capture
+        System.out.println("Testing frame capture...");
         Mat frame = new Mat();
         Mat gray = new Mat();
 
         while (true) {
-            // Capture a new frame from the video feed
-            capture.read(frame);
-
-            // Exit if no frame is captured
-            if (frame.empty()) {
-                System.out.println("Error: No frame captured.");
+            if (!capture.read(frame)) {
+                System.err.println("Error: Could not read frame.");
                 break;
             }
+
+            if (frame.empty()) {
+                System.err.println("Warning: Empty frame captured.");
+                continue;
+            }
+
+            System.out.println("Frame captured successfully.");
 
             // Convert the frame to grayscale
             Imgproc.cvtColor(frame, gray, Imgproc.COLOR_BGR2GRAY);
 
-            // Draw a bounding box on the frame (example bounding box)
+            // Draw a sample bounding box
             Rect rect = new Rect(50, 50, 200, 200);
             Imgproc.rectangle(frame, rect.tl(), rect.br(), new Scalar(0, 255, 0), 2);
 
@@ -60,15 +74,13 @@ public class ObjectTracking {
 
             // Exit the loop if the 'q' key is pressed
             if (HighGui.waitKey(30) == 'q') {
+                System.out.println("Exit command received. Closing...");
                 break;
             }
         }
 
-        // Release video capture resources
+        // Release resources
         capture.release();
-
-        // Close the display window
         HighGui.destroyAllWindows();
     }
 }
-
