@@ -35,6 +35,8 @@ public class FullyConnectedLayer extends Layer {
         this._learningRate = learningRate;
 
         _weights = new double[_inLength][_outLength];
+        lastZ = new double[_outLength]; // Initialize lastZ
+        lastX = new double[_inLength]; // Initialize lastX
         setRandomWeights(); // Initialize weights randomly
     }
 
@@ -51,8 +53,9 @@ public class FullyConnectedLayer extends Layer {
         double[] out = new double[_outLength];
 
         // Compute the linear transformation (z = input * weights)
-        for (int i = 0; i < _inLength; i++) {
-            for (int j = 0; j < _outLength; j++) {
+        for (int j = 0; j < _outLength; j++) {
+            z[j] = 0; // Initialize z[j]
+            for (int i = 0; i < _inLength; i++) {
                 z[j] += input[i] * _weights[i][j];
             }
         }
@@ -86,6 +89,10 @@ public class FullyConnectedLayer extends Layer {
 
     @Override
     public void backPropagation(double[] dLdO) {
+        if (dLdO.length != _outLength) {
+            throw new IllegalArgumentException("Size of dLdO must match the output length of the layer.");
+        }
+
         double[] dLdX = new double[_inLength];
 
         double dOdz; // Derivative of output with respect to z
@@ -129,7 +136,7 @@ public class FullyConnectedLayer extends Layer {
 
     @Override
     public int getOutputRows() {
-        return 1; // Fully connected layers have a single row in their output
+        return 1; // Fully connected layers are 1D in output
     }
 
     @Override
@@ -147,10 +154,11 @@ public class FullyConnectedLayer extends Layer {
      */
     public void setRandomWeights() {
         Random random = new Random(SEED);
+        double stddev = 0.01; // Small standard deviation for weights
 
         for (int i = 0; i < _inLength; i++) {
             for (int j = 0; j < _outLength; j++) {
-                _weights[i][j] = random.nextGaussian();
+                _weights[i][j] = stddev * random.nextGaussian();
             }
         }
     }
@@ -158,8 +166,8 @@ public class FullyConnectedLayer extends Layer {
     /**
      * Applies the ReLU activation function.
      *
-     * @param input The input value
-     * @return The activated output value
+     * @param input The input value.
+     * @return The activated output value.
      */
     public double reLu(double input) {
         return Math.max(0, input);
@@ -168,8 +176,8 @@ public class FullyConnectedLayer extends Layer {
     /**
      * Computes the derivative of the ReLU activation function.
      *
-     * @param input The input value
-     * @return The derivative of ReLU
+     * @param input The input value.
+     * @return The derivative of ReLU, which is either `leak` or `1`.
      */
     public double derivativeReLu(double input) {
         return input <= 0 ? leak : 1;
