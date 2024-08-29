@@ -1,4 +1,4 @@
-# Object Tracking in Java using OpenCV
+# Object Tracking in Java using OpenCV (Work in progress)
 
 This project is a Java application that utilizes OpenCV to capture video from a webcam, perform object tracking and movement prediction, and display the video feed in real-time. The program tests key components like OpenCV library loading, camera initialization, frame capture, and image display using `HighGui`.
 
@@ -34,7 +34,7 @@ This project is a Java application that utilizes OpenCV to capture video from a 
       ```
 
 4. **Run the Application**:
-    - Execute the `TestObjectTracking` class.
+    - Execute the `Main` class.
     - The application will test each component and display the video feed with object tracking.
 
 ## Usage
