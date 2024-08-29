@@ -1,3 +1,5 @@
+package InputOutput;
+
 import org.opencv.core.Mat;
 import org.opencv.videoio.VideoCapture;
 
