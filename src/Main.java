@@ -1,3 +1,4 @@
+import AI_Model.ObjectClassifier;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
 import org.opencv.core.CvType;
@@ -6,7 +7,7 @@ import org.opencv.core.Point;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.highgui.HighGui;
 import org.opencv.core.Core;
-
+import InputOutput.*;
 /**
  * The {@code ObjectTrackingApp} class initializes the components and coordinates
  * video capture, frame processing, and object classification.
