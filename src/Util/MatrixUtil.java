@@ -58,4 +58,43 @@ public class MatrixUtil {
 
         return res;
     }
+
+    /**
+     * Flips a matrix horizontally (around its vertical axis).
+     *
+     * @param matrix The matrix to flip.
+     * @return The horizontally flipped matrix.
+     */
+    public static double[][] flipMatrixHorizontal(double[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        double[][] flipped = new double[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                flipped[rows - i - 1][j] = matrix[i][j];
+            }
+        }
+        return flipped;
+    }
+
+    /**
+     * Flips a matrix vertically (around its horizontal axis).
+     *
+     * @param matrix The matrix to flip.
+     * @return The vertically flipped matrix.
+     */
+    public static double[][] flipMatrixVertical(double[][] matrix) {
+        int rows = matrix.length;
+        int cols = matrix[0].length;
+        double[][] flipped = new double[rows][cols];
+
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                flipped[i][cols - j - 1] = matrix[i][j];
+            }
+        }
+        return flipped;
+    }
+
 }
