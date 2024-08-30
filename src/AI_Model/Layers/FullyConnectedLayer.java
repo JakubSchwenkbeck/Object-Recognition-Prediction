@@ -71,17 +71,17 @@ public class FullyConnectedLayer extends Layer {
     }
 
     @Override
-    public double[] getOutput(List<double[][]> input) {
+    public double[] computeOutput(List<double[][]> input) {
         double[] vector = convertMatrixToVector(input);
-        return getOutput(vector);
+        return computeOutput(vector);
     }
 
     @Override
-    public double[] getOutput(double[] input) {
+    public double[] computeOutput(double[] input) {
         double[] forwardPassOutput = forwardPass(input);
 
         if (nextLayer != null) {
-            return nextLayer.getOutput(forwardPassOutput);
+            return nextLayer.computeOutput(forwardPassOutput);
         } else {
             return forwardPassOutput;
         }
@@ -97,7 +97,7 @@ public class FullyConnectedLayer extends Layer {
      * @param dLdO The derivative of the loss function with respect to the output of this layer.
      */
     @Override
-    public void backPropagation(double[] dLdO) {
+    public void backpropagate(double[] dLdO) {
         if (dLdO.length != outputSize) {
             throw new IllegalArgumentException("Size of dLdO must match the output length of the layer.");
         }
@@ -135,14 +135,14 @@ public class FullyConnectedLayer extends Layer {
 
         // If there is a previous layer, propagate the gradient back to it
         if (previousLayer != null) {
-            previousLayer.backPropagation(dLdX);
+            previousLayer.backpropagate(dLdX);
         }
     }
 
     @Override
-    public void backPropagation(List<double[][]> dLdO) {
+    public void backpropagate(List<double[][]> dLdO) {
         double[] vector = convertMatrixToVector(dLdO);
-        backPropagation(vector);
+        backpropagate(vector);
     }
 
     @Override
@@ -161,7 +161,7 @@ public class FullyConnectedLayer extends Layer {
     }
 
     @Override
-    public int getOutputElements() {
+    public int getTotalOutputElements() {
         return outputSize;
     }
 
