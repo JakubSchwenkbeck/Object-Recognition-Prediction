@@ -87,32 +87,53 @@ public class FullyConnectedLayer extends Layer {
         }
     }
 
+    /**
+     * Performs backpropagation to compute gradients and update weights.
+     * <p>
+     * Backpropagation is the process of adjusting the weights in the neural network to minimize the error.
+     * It works by propagating the derivative of the loss function with respect to the output backward through the network.
+     * </p>
+     *
+     * @param dLdO The derivative of the loss function with respect to the output of this layer.
+     */
     @Override
     public void backPropagation(double[] dLdO) {
         if (dLdO.length != outputSize) {
             throw new IllegalArgumentException("Size of dLdO must match the output length of the layer.");
         }
 
-        double[] dLdX = new double[inputSize];
+        double[] dLdX = new double[inputSize]; // Array to hold the gradient with respect to the input of this layer
 
-        // Compute gradients and update weights
+        // Loop over each input unit
         for (int i = 0; i < inputSize; i++) {
             double dLdXSum = 0;
 
+            // Loop over each output unit
             for (int j = 0; j < outputSize; j++) {
+                // Calculate the derivative of the loss with respect to z[j] (dOdz)
                 double dOdz = reluDerivative(lastZ[j]);
+
+                // The derivative of z[j] with respect to weight w[i][j] is the input value lastInput[i]
                 double dzdw = lastInput[i];
+
+                // The derivative of z[j] with respect to the input x[i] is the weight w[i][j]
                 double dzdx = weights[i][j];
 
+                // Calculate the gradient of the loss with respect to the weight (dLdw)
                 double dLdw = dLdO[j] * dOdz * dzdw;
+
+                // Update the weight using the calculated gradient
                 weights[i][j] -= dLdw * learningRate;
 
+                // Accumulate the gradient with respect to the input
                 dLdXSum += dLdO[j] * dOdz * dzdx;
             }
 
+            // Store the gradient with respect to the input
             dLdX[i] = dLdXSum;
         }
 
+        // If there is a previous layer, propagate the gradient back to it
         if (previousLayer != null) {
             previousLayer.backPropagation(dLdX);
         }
@@ -146,6 +167,10 @@ public class FullyConnectedLayer extends Layer {
 
     /**
      * Initializes weights with random values using a Gaussian distribution.
+     * <p>
+     * This method initializes the weight matrix with small random values
+     * drawn from a Gaussian distribution with a small standard deviation.
+     * </p>
      */
     private void initializeWeights() {
         Random random = new Random(seed);
@@ -160,9 +185,13 @@ public class FullyConnectedLayer extends Layer {
 
     /**
      * Applies the ReLU activation function.
+     * <p>
+     * ReLU (Rectified Linear Unit) is a simple activation function that outputs the input directly if it is positive;
+     * otherwise, it outputs zero. It introduces non-linearity into the model, allowing it to learn complex patterns.
+     * </p>
      *
      * @param input The input value.
-     * @return The activated output value.
+     * @return The activated output value (max(0, input)).
      */
     private double relu(double input) {
         return Math.max(0, input);
@@ -170,6 +199,10 @@ public class FullyConnectedLayer extends Layer {
 
     /**
      * Computes the derivative of the ReLU activation function.
+     * <p>
+     * The derivative of the ReLU function is 1 for positive input values and `leakiness` for negative input values.
+     * This is used during backpropagation to compute gradients.
+     * </p>
      *
      * @param input The input value.
      * @return The derivative of ReLU, which is either `leakiness` or `1`.
