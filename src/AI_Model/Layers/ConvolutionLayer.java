@@ -254,7 +254,7 @@ public class ConvolutionLayer extends Layer {
                         int inputRow = i + x;
                         int inputCol = j + y;
                         if (inputRow >= 0 && inputCol >= 0 && inputRow < input.length && inputCol < input[0].length) {
-                            sum += filter[x][y] * input[inputRow][inputCol];
+                            sum += filter[x][y] * input[inputRow][inputCol]; // "simple" convolution
                         }
                     }
                 }
