@@ -9,35 +9,35 @@ import java.util.Random;
  */
 public class FullyConnectedLayer extends Layer {
 
-    private long SEED; // Seed for weight initialization
-    private final double leak = 0.01; // Leakiness for Leaky ReLU activation
+    private final long seed; // Seed for weight initialization
+    private final double leakiness = 0.01; // Leakiness for Leaky ReLU activation
+    private final double learningRate; // Learning rate for weight updates
 
-    private double[][] _weights; // Weight matrix for the layer
-    private int _inLength; // Number of input units
-    private int _outLength; // Number of output units
-    private double _learningRate; // Learning rate for weight updates
+    private double[][] weights; // Weight matrix for the layer
+    private final int inputSize; // Number of input units
+    private final int outputSize; // Number of output units
 
     private double[] lastZ; // Last computed linear transformation (z)
-    private double[] lastX; // Last input to the layer
+    private double[] lastInput; // Last input to the layer
 
     /**
      * Constructs a Fully Connected Layer.
      *
-     * @param _inLength    Number of input units
-     * @param _outLength   Number of output units
-     * @param SEED         Seed for weight initialization
+     * @param inputSize    Number of input units
+     * @param outputSize   Number of output units
+     * @param seed         Seed for weight initialization
      * @param learningRate Learning rate for weight updates
      */
-    public FullyConnectedLayer(int _inLength, int _outLength, long SEED, double learningRate) {
-        this._inLength = _inLength;
-        this._outLength = _outLength;
-        this.SEED = SEED;
-        this._learningRate = learningRate;
+    public FullyConnectedLayer(int inputSize, int outputSize, long seed, double learningRate) {
+        this.inputSize = inputSize;
+        this.outputSize = outputSize;
+        this.seed = seed;
+        this.learningRate = learningRate;
 
-        _weights = new double[_inLength][_outLength];
-        lastZ = new double[_outLength]; // Initialize lastZ
-        lastX = new double[_inLength]; // Initialize lastX
-        setRandomWeights(); // Initialize weights randomly
+        weights = new double[inputSize][outputSize];
+        lastZ = new double[outputSize];
+        lastInput = new double[inputSize];
+        initializeWeights(); // Initialize weights randomly
     }
 
     /**
@@ -46,119 +46,114 @@ public class FullyConnectedLayer extends Layer {
      * @param input The input array
      * @return The output array after applying ReLU activation
      */
-    public double[] fullyConnectedForwardPass(double[] input) {
-        lastX = input;
+    public double[] forwardPass(double[] input) {
+        lastInput = input;
 
-        double[] z = new double[_outLength];
-        double[] out = new double[_outLength];
+        double[] z = new double[outputSize];
+        double[] output = new double[outputSize];
 
         // Compute the linear transformation (z = input * weights)
-        for (int j = 0; j < _outLength; j++) {
+        for (int j = 0; j < outputSize; j++) {
             z[j] = 0; // Initialize z[j]
-            for (int i = 0; i < _inLength; i++) {
-                z[j] += input[i] * _weights[i][j];
+            for (int i = 0; i < inputSize; i++) {
+                z[j] += input[i] * weights[i][j];
             }
         }
 
         lastZ = z;
 
         // Apply ReLU activation
-        for (int j = 0; j < _outLength; j++) {
-            out[j] = reLu(z[j]);
+        for (int j = 0; j < outputSize; j++) {
+            output[j] = relu(z[j]);
         }
 
-        return out;
+        return output;
     }
 
     @Override
     public double[] getOutput(List<double[][]> input) {
-        double[] vector = matrixToVector(input);
+        double[] vector = convertMatrixToVector(input);
         return getOutput(vector);
     }
 
     @Override
     public double[] getOutput(double[] input) {
-        double[] forwardPass = fullyConnectedForwardPass(input);
+        double[] forwardPassOutput = forwardPass(input);
 
-        if (_nextLayer != null) {
-            return _nextLayer.getOutput(forwardPass);
+        if (nextLayer != null) {
+            return nextLayer.getOutput(forwardPassOutput);
         } else {
-            return forwardPass;
+            return forwardPassOutput;
         }
     }
 
     @Override
     public void backPropagation(double[] dLdO) {
-        if (dLdO.length != _outLength) {
+        if (dLdO.length != outputSize) {
             throw new IllegalArgumentException("Size of dLdO must match the output length of the layer.");
         }
 
-        double[] dLdX = new double[_inLength];
-
-        double dOdz; // Derivative of output with respect to z
-        double dzdw; // Derivative of z with respect to weights
-        double dLdw; // Gradient of loss with respect to weights
-        double dzdx; // Derivative of z with respect to input
+        double[] dLdX = new double[inputSize];
 
         // Compute gradients and update weights
-        for (int k = 0; k < _inLength; k++) {
-            double dLdX_sum = 0;
+        for (int i = 0; i < inputSize; i++) {
+            double dLdXSum = 0;
 
-            for (int j = 0; j < _outLength; j++) {
-                dOdz = derivativeReLu(lastZ[j]);
-                dzdw = lastX[k];
-                dzdx = _weights[k][j];
+            for (int j = 0; j < outputSize; j++) {
+                double dOdz = reluDerivative(lastZ[j]);
+                double dzdw = lastInput[i];
+                double dzdx = weights[i][j];
 
-                dLdw = dLdO[j] * dOdz * dzdw;
-                _weights[k][j] -= dLdw * _learningRate;
+                double dLdw = dLdO[j] * dOdz * dzdw;
+                weights[i][j] -= dLdw * learningRate;
 
-                dLdX_sum += dLdO[j] * dOdz * dzdx;
+                dLdXSum += dLdO[j] * dOdz * dzdx;
             }
 
-            dLdX[k] = dLdX_sum;
+            dLdX[i] = dLdXSum;
         }
 
-        if (_previousLayer != null) {
-            _previousLayer.backPropagation(dLdX);
+        if (previousLayer != null) {
+            previousLayer.backPropagation(dLdX);
         }
     }
 
     @Override
     public void backPropagation(List<double[][]> dLdO) {
-        double[] vector = matrixToVector(dLdO);
+        double[] vector = convertMatrixToVector(dLdO);
         backPropagation(vector);
     }
 
     @Override
     public int getOutputLength() {
-        return _outLength;
+        return outputSize;
     }
 
     @Override
     public int getOutputRows() {
-        return 1; // Fully connected layers are 1D in output
+        return 1; // Fully connected layers produce 1D output
     }
 
     @Override
     public int getOutputCols() {
-        return _outLength;
+        return outputSize;
     }
 
     @Override
     public int getOutputElements() {
-        return _outLength;
+        return outputSize;
     }
 
     /**
      * Initializes weights with random values using a Gaussian distribution.
      */
-    public void setRandomWeights() {
-        Random random = new Random(SEED);
+    private void initializeWeights() {
+        Random random = new Random(seed);
         double stddev = 0.01; // Small standard deviation for weights
 
-        for (int i = 0; i < _inLength; i++) {
-            for (int j = 0; j < _outLength; j++) {
-                _weights[i][j] = stddev * random.nextGaussian();
+        for (int i = 0; i < inputSize; i++) {
+            for (int j = 0; j < outputSize; j++) {
+                weights[i][j] = stddev * random.nextGaussian();
             }
         }
     }
@@ -169,7 +164,7 @@ public class FullyConnectedLayer extends Layer {
      * @param input The input value.
      * @return The activated output value.
      */
-    public double reLu(double input) {
+    private double relu(double input) {
         return Math.max(0, input);
     }
 
@@ -177,9 +172,9 @@ public class FullyConnectedLayer extends Layer {
      * Computes the derivative of the ReLU activation function.
      *
      * @param input The input value.
-     * @return The derivative of ReLU, which is either `leak` or `1`.
+     * @return The derivative of ReLU, which is either `leakiness` or `1`.
      */
-    public double derivativeReLu(double input) {
-        return input <= 0 ? leak : 1;
+    private double reluDerivative(double input) {
+        return input <= 0 ? leakiness : 1;
     }
 }
