@@ -25,7 +25,7 @@ public class Main {
         // Initialize OpenCV library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 try {
-    System.out.println(PascalVOCDataLoader.parseXML("C:/Users/jakub/Code/annot.xml").getBoundingBoxes().get(0).getLabel());
+  //  System.out.println(PascalVOCDataLoader.parseXML("C:/Users/jakub/Code/annot.xml").getBoundingBoxes().get(0).getLabel());
 }catch(Exception e){
     System.out.println("Parsing not working");
 }
