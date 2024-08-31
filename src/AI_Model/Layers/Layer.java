@@ -1,5 +1,6 @@
 package AI_Model.Layers;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,7 +8,7 @@ import java.util.List;
  * Abstract base class for neural network layers.
  * Provides methods for handling layer connections, output calculation, and backpropagation.
  */
-public abstract class Layer {
+public abstract class Layer implements Serializable {
 
     /**
      * The next layer in the network.

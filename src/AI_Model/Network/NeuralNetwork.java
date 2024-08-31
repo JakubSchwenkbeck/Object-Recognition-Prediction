@@ -1,21 +1,25 @@
 package AI_Model.Network;
 
-import AI_Model.Layers.ConvolutionLayer;
-import AI_Model.Layers.FullyConnectedLayer;
-import AI_Model.Layers.Layer;
-import AI_Model.Layers.MaxPoolingLayer;
-import org.opencv.core.Core;
+import AI_Model.Layers.*;
+
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.core.CvType;
 
+import static Util.MatrixUtil.*;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * NeuralNetwork class that processes input frames to recognize objects, specifically humans.
- */
-public class NeuralNetwork {
+import java.io.Serializable;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
+
+
+
+public class NeuralNetwork implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     private final List<Layer> layers;
     private final double scaleFactor;
@@ -30,6 +34,14 @@ public class NeuralNetwork {
         this.layers = layers;
         this.scaleFactor = scaleFactor;
         linkLayers();
+    }
+    public void saveNetwork(NeuralNetwork network, String filePath) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
+            oos.writeObject(network);
+            System.out.println("Neural network saved to " + filePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -62,13 +74,18 @@ public class NeuralNetwork {
     public static NeuralNetwork buildNetwork(int inputRows, int inputCols, double scaleFactor, long seed) {
         List<Layer> layers = new ArrayList<>();
 
-        // Add layers in a sensible order
-        layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01));
-        layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2));
-        layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01));
-        layers.add(new MaxPoolingLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2));
-        layers.add(new FullyConnectedLayer(256, 64, seed,0.01));
-        layers.add(new FullyConnectedLayer(64, 5, seed,0.01)); // Assuming 5 output values (class + bounding box)
+          // Add layers in a sensible order with alternating pooling types
+        layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01)); // 1st Conv Layer
+        layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2)); // Max Pooling Layer 1
+
+        layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01)); // 2nd Conv Layer
+        layers.add(new AveragePoolingLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2)); // Avg Pooling Layer 2
+
+        layers.add(new ConvolutionLayer(3, 1, 64, (inputRows - 6) / 4, (inputCols - 6) / 4, seed, 128, 0.01)); // 3rd Conv Layer
+        layers.add(new MaxPoolingLayer(2, 2, 128, (inputRows - 8) / 4, (inputCols - 8) / 4)); // Max Pooling Layer 3
+
+        layers.add(new FullyConnectedLayer(512, 128, seed, 0.01)); // 1st Fully Connected Layer
+        layers.add(new FullyConnectedLayer(128, 5, seed, 0.01)); // 2nd Fully Connected Layer (output: label + bounding box)
 
         return new NeuralNetwork(layers, scaleFactor);
     }
@@ -96,7 +113,7 @@ public class NeuralNetwork {
         Size size = new Size(layers.get(0).getOutputCols(), layers.get(0).getOutputRows());
         Mat resizedFrame = new Mat();
         Imgproc.resize(frame, resizedFrame, size);
-        resizedFrame.convertTo(resizedFrame, Core.CV_32F, scaleFactor / 255.0);
+        resizedFrame.convertTo(resizedFrame, CvType.CV_8UC3, scaleFactor / 255.0);
         return resizedFrame;
     }
 
@@ -165,7 +182,7 @@ public class NeuralNetwork {
             double[] output = forwardPass(inputVector);
 
             double[] errors = getErrors(output, label);
-            backpropagate(errors);
+            getErrors(errors,label);
         }
     }
 
@@ -209,11 +226,15 @@ public class NeuralNetwork {
     /**
      * Backpropagates the errors through the network and updates the weights.
      *
-     * @param errors The errors to backpropagate.
+     * The errors to backpropagate.
      */
-    private void backpropagate(double[] errors) {
-        for (int i = layers.size() - 1; i >= 0; i--) {
-            errors = layers.get(i).backpropagate(errors);
-        }
+    public double[] getErrors(double[] networkOutput, int correctAnswer){
+        int numClasses = networkOutput.length;
+
+        double[] expected = new double[numClasses];
+
+        expected[correctAnswer] = 1;
+
+        return add(networkOutput, mul(expected, -1));
     }
 }
