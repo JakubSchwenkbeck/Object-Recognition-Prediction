@@ -1,23 +1,24 @@
 package AI_Model.Network;
 
 import AI_Model.Layers.*;
-
+import AI_Model.Data.*;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.CvType;
 
 import static Util.MatrixUtil.*;
-import java.util.ArrayList;
-import java.util.List;
 
 import java.io.Serializable;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
-
-
+/**
+ * Class representing a neural network.
+ */
 public class NeuralNetwork implements Serializable {
     private static final long serialVersionUID = 1L;
 
@@ -35,6 +36,7 @@ public class NeuralNetwork implements Serializable {
         this.scaleFactor = scaleFactor;
         linkLayers();
     }
+
     public void saveNetwork(NeuralNetwork network, String filePath) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(network);
@@ -74,7 +76,7 @@ public class NeuralNetwork implements Serializable {
     public static NeuralNetwork buildNetwork(int inputRows, int inputCols, double scaleFactor, long seed) {
         List<Layer> layers = new ArrayList<>();
 
-          // Add layers in a sensible order with alternating pooling types
+        // Add layers in a sensible order with alternating pooling types
         layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01)); // 1st Conv Layer
         layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2)); // Max Pooling Layer 1
 
@@ -168,36 +170,51 @@ public class NeuralNetwork implements Serializable {
     }
 
     /**
-     * Trains the neural network using a set of training images.
+     * Trains the neural network using a set of training images and annotations.
      *
-     * @param images List of images to train on.
+     * @param images    List of images to train on.
+     * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
      */
-    public void train(List<Mat> images, List<int[]> labels) {
+    public void train(List<Mat> images, List<PascalVOCDataLoader> annotations) {
         for (int i = 0; i < images.size(); i++) {
             Mat image = images.get(i);
-            int[] label = labels.get(i);
+            PascalVOCDataLoader annotation = annotations.get(i);
 
             Mat resizedFrame = preprocessFrame(image);
             double[] inputVector = convertMatToInputVector(resizedFrame);
-            double[] output = forwardPass(inputVector);
 
-            double[] errors = getErrors(output, label);
-            getErrors(errors,label);
+            // Prepare the output vector (assumed format: [label, x, y, width, height])
+            double[] outputVector = new double[5]; // Adjust size if necessary
+            for (PascalVOCDataLoader.BoundingBox bbox : annotation.getBoundingBoxes()) {
+                // Set output values (this is just a placeholder, adjust as needed)
+                outputVector[0] = bbox.getLabel().equals("person") ? 1.0 : 0.0;
+                outputVector[1] = bbox.getXmin();
+                outputVector[2] = bbox.getYmin();
+                outputVector[3] = bbox.getXmax() - bbox.getXmin();
+                outputVector[4] = bbox.getYmax() - bbox.getYmin();
+            }
+
+            // Perform forward pass and update weights (backpropagation)
+            double[] networkOutput = forwardPass(inputVector);
+            double[] dldO = getErrors(networkOutput, outputVector);
+            layers.get((layers.size()-1)).backpropagate(dldO);
+
         }
     }
 
     /**
-     * Tests the neural network using a set of test images.
+     * Tests the neural network using a set of test images and annotations.
      *
-     * @param images List of test images.
+     * @param images    List of test images.
+     * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
      * @return The accuracy of the neural network.
      */
-    public float test(List<Mat> images, List<int[]> labels) {
+    public float test(List<Mat> images, List<PascalVOCDataLoader> annotations) {
         int correct = 0;
 
         for (int i = 0; i < images.size(); i++) {
             Mat image = images.get(i);
-            int[] label = labels.get(i);
+            PascalVOCDataLoader annotation = annotations.get(i);
 
             String prediction = recognizeObject(image);
             if (prediction.equals("Human")) {
@@ -215,7 +232,7 @@ public class NeuralNetwork implements Serializable {
      * @param correctLabel  The correct label.
      * @return An array representing the error.
      */
-    private double[] getErrors(double[] networkOutput, int[] correctLabel) {
+    private double[] getErrors(double[] networkOutput, double[] correctLabel) {
         double[] errors = new double[networkOutput.length];
         for (int i = 0; i < networkOutput.length; i++) {
             errors[i] = correctLabel[i] - networkOutput[i];
@@ -223,18 +240,5 @@ public class NeuralNetwork implements Serializable {
         return errors;
     }
 
-    /**
-     * Backpropagates the errors through the network and updates the weights.
-     *
-     * The errors to backpropagate.
-     */
-    public double[] getErrors(double[] networkOutput, int correctAnswer){
-        int numClasses = networkOutput.length;
 
-        double[] expected = new double[numClasses];
-
-        expected[correctAnswer] = 1;
-
-        return add(networkOutput, mul(expected, -1));
-    }
 }
