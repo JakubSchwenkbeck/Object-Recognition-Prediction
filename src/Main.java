@@ -15,8 +15,9 @@ import AI_Model.*;
 import java.io.FileNotFoundException;
 
 /**
- * The {@code ObjectTrackingApp} class initializes the components and coordinates
+ * The {@code Main} class initializes the components and coordinates
  * video capture, frame processing, and object classification.
+ * @author Jakub Schwenkbeck
  */
 public class Main {
 
