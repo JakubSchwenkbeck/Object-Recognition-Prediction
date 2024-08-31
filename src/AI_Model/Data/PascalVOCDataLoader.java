@@ -54,8 +54,9 @@ public class PascalVOCDataLoader{
      */
     public static List<TrainingSample> loadAndPreprocessImages(List<PascalVOCDataLoader> dataLoaders, String imageDirPath, Size targetSize) {
         List<TrainingSample> trainingSamples = new ArrayList<>();
-
+int counter = 0;
         for (PascalVOCDataLoader dataLoader : dataLoaders) {
+            System.out.println("Loading Dataset Nr : " + counter++);
             String imageFilePath = imageDirPath + File.separator + dataLoader.getImageFileName();
             Mat image = Imgcodecs.imread(imageFilePath);
 

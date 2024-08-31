@@ -28,7 +28,8 @@ try {
 }catch(Exception e){
     System.out.println("Parsing not working");
 }
-        // WORKS !! !TrainingRunner.main();
+        // WORKS !! !
+        TrainingRunner.main();
 
         // Create instances of handler classes
         VideoCaptureHandler captureHandler = new VideoCaptureHandler(0);
