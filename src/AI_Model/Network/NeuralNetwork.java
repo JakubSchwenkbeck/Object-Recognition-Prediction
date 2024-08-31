@@ -1,13 +1,15 @@
 package AI_Model.Network;
 
+import layers.ConvolutionLayer;
+import layers.FullyConnectedLayer;
 import layers.Layer;
+import layers.MaxPoolLayer;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,6 +29,48 @@ public class NeuralNetwork {
     public NeuralNetwork(List<Layer> layers, double scaleFactor) {
         this.layers = layers;
         this.scaleFactor = scaleFactor;
+        linkLayers();
+    }
+
+    /**
+     * Links the layers together by setting the previous and next layers.
+     */
+    private void linkLayers() {
+        if (layers.size() <= 1) return;
+
+        for (int i = 0; i < layers.size(); i++) {
+            if (i == 0) {
+                layers.get(i).setNextLayer(layers.get(i + 1));
+            } else if (i == layers.size() - 1) {
+                layers.get(i).setPreviousLayer(layers.get(i - 1));
+            } else {
+                layers.get(i).setPreviousLayer(layers.get(i - 1));
+                layers.get(i).setNextLayer(layers.get(i + 1));
+            }
+        }
+    }
+
+    /**
+     * Builds a neural network by adding layers.
+     *
+     * @param inputRows     Number of rows in the input image.
+     * @param inputCols     Number of columns in the input image.
+     * @param scaleFactor   Scaling factor for input normalization.
+     * @param seed          Random seed for initializing weights.
+     * @return A constructed NeuralNetwork object.
+     */
+    public static NeuralNetwork buildNetwork(int inputRows, int inputCols, double scaleFactor, long seed) {
+        List<Layer> layers = new ArrayList<>();
+
+        // Add layers in a sensible order
+        layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01));
+        layers.add(new MaxPoolLayer(2, 2, 32, inputRows - 2, inputCols - 2));
+        layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01));
+        layers.add(new MaxPoolLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2));
+        layers.add(new FullyConnectedLayer(256, 0.01, seed));
+        layers.add(new FullyConnectedLayer(5, 0.01, seed)); // Assuming 5 output values (class + bounding box)
+
+        return new NeuralNetwork(layers, scaleFactor);
     }
 
     /**
@@ -36,19 +80,10 @@ public class NeuralNetwork {
      * @return A string label ("Human") and the position of the recognized object.
      */
     public String recognizeObject(Mat frame) {
-        // Preprocess the input frame: resize and normalize
         Mat resizedFrame = preprocessFrame(frame);
-
-        // Convert frame to a format compatible with the neural network (e.g., convert to 1D vector)
         double[] inputVector = convertMatToInputVector(resizedFrame);
-
-        // Forward pass through the network
         double[] output = forwardPass(inputVector);
-
-        // Post-process the output to determine the label and position
-        String label = interpretOutput(output);
-
-        return label;
+        return interpretOutput(output);
     }
 
     /**
@@ -58,10 +93,10 @@ public class NeuralNetwork {
      * @return The preprocessed frame.
      */
     private Mat preprocessFrame(Mat frame) {
-        Size size = new Size(layers.get(0).getOutputRows(), layers.get(0).getOutputCols()); // Resize to match input dimensions
+        Size size = new Size(layers.get(0).getOutputCols(), layers.get(0).getOutputRows());
         Mat resizedFrame = new Mat();
         Imgproc.resize(frame, resizedFrame, size);
-        resizedFrame.convertTo(resizedFrame, Core.CV_32F, scaleFactor / 255.0); // Normalize
+        resizedFrame.convertTo(resizedFrame, Core.CV_32F, scaleFactor / 255.0);
         return resizedFrame;
     }
 
@@ -86,11 +121,9 @@ public class NeuralNetwork {
      */
     private double[] forwardPass(double[] inputVector) {
         double[] output = inputVector;
-
         for (Layer layer : layers) {
             output = layer.computeOutput(output);
         }
-
         return output;
     }
 
@@ -101,22 +134,86 @@ public class NeuralNetwork {
      * @return A label ("Human") if recognized, otherwise "None".
      */
     private String interpretOutput(double[] output) {
-        // Simple thresholding logic for demonstration purposes
-        int humanLabelIndex = 0; // Assuming the human label is at index 0
-        double threshold = 0.5;  // Simple threshold for classification
+        int humanLabelIndex = 0;
+        double threshold = 0.5;
 
         if (output[humanLabelIndex] > threshold) {
-            // Assume output contains bounding box data in subsequent indices (e.g., x, y, width, height)
+            // Assuming output contains bounding box data in subsequent indices (x, y, width, height)
             int x = (int) output[1];
             int y = (int) output[2];
             int width = (int) output[3];
             int height = (int) output[4];
 
-            return "Human";
+            // Return label and bounding box information (as needed)
+            return "Human: Position (" + x + ", " + y + "), Size (" + width + "x" + height + ")";
         }
-
         return "None";
     }
 
- 
+    /**
+     * Trains the neural network using a set of training images.
+     *
+     * @param images List of images to train on.
+     */
+    public void train(List<Mat> images, List<int[]> labels) {
+        for (int i = 0; i < images.size(); i++) {
+            Mat image = images.get(i);
+            int[] label = labels.get(i);
+
+            Mat resizedFrame = preprocessFrame(image);
+            double[] inputVector = convertMatToInputVector(resizedFrame);
+            double[] output = forwardPass(inputVector);
+
+            double[] errors = getErrors(output, label);
+            backpropagate(errors);
+        }
+    }
+
+    /**
+     * Tests the neural network using a set of test images.
+     *
+     * @param images List of test images.
+     * @return The accuracy of the neural network.
+     */
+    public float test(List<Mat> images, List<int[]> labels) {
+        int correct = 0;
+
+        for (int i = 0; i < images.size(); i++) {
+            Mat image = images.get(i);
+            int[] label = labels.get(i);
+
+            String prediction = recognizeObject(image);
+            if (prediction.equals("Human")) {
+                correct++;
+            }
+        }
+
+        return (float) correct / images.size();
+    }
+
+    /**
+     * Computes the error between the network's output and the correct label.
+     *
+     * @param networkOutput The output produced by the network.
+     * @param correctLabel  The correct label.
+     * @return An array representing the error.
+     */
+    private double[] getErrors(double[] networkOutput, int[] correctLabel) {
+        double[] errors = new double[networkOutput.length];
+        for (int i = 0; i < networkOutput.length; i++) {
+            errors[i] = correctLabel[i] - networkOutput[i];
+        }
+        return errors;
+    }
+
+    /**
+     * Backpropagates the errors through the network and updates the weights.
+     *
+     * @param errors The errors to backpropagate.
+     */
+    private void backpropagate(double[] errors) {
+        for (int i = layers.size() - 1; i >= 0; i--) {
+            errors = layers.get(i).backPropagation(errors);
+        }
+    }
 }
