@@ -8,6 +8,7 @@ import org.w3c.dom.NodeList;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,7 +103,39 @@ public class PascalVOCDataLoader{
             return null;
         }
     }
+    /**
+     * Loads all Pascal VOC XML annotation files from a directory.
+     *
+     * @param dirPath The path to the directory containing XML files.
+     * @return A list of PascalVOCDataLoader objects, each representing an annotation file.
+     */
+    public static List<PascalVOCDataLoader> loadDir(String dirPath) {
+        List<PascalVOCDataLoader> dataLoaders = new ArrayList<>();
+        File dir = new File(dirPath);
 
+        if (dir.isDirectory()) {
+            // Filter XML files
+            File[] xmlFiles = dir.listFiles(new FilenameFilter() {
+                @Override
+                public boolean accept(File dir, String name) {
+                    return name.endsWith(".xml");
+                }
+            });
+
+            if (xmlFiles != null) {
+                for (File xmlFile : xmlFiles) {
+                    PascalVOCDataLoader dataLoader = parseXML(xmlFile.getAbsolutePath());
+                    if (dataLoader != null) {
+                        dataLoaders.add(dataLoader);
+                    }
+                }
+            }
+        } else {
+            System.err.println("Provided path is not a directory: " + dirPath);
+        }
+
+        return dataLoaders;
+    }
     /**
      * Inner class to represent a bounding box.
      */
