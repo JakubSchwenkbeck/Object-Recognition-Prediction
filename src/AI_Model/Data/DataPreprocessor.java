@@ -1,6 +1,11 @@
 package AI_Model.Data;
 
 import java.util.List;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.core.CvType;
+import static Util.MatrixUtil.*;
 
 public class DataPreprocessor {
 

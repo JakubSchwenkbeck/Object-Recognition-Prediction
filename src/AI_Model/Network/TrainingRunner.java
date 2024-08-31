@@ -1,6 +1,10 @@
 package AI_Model.Network;
 
-import AI_Model.Layers.*;
+import AI_Model.Data.*;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgproc.Imgproc;
+import org.opencv.core.CvType;
 
 import java.util.ArrayList;
 import java.util.List;
