@@ -1,4 +1,5 @@
 import AI_Model.Data.PascalVOCDataLoader;
+import AI_Model.Network.TrainingRunner;
 import AI_Model.ObjectClassifier;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
@@ -27,6 +28,7 @@ try {
 }catch(Exception e){
     System.out.println("Parsing not working");
 }
+        // WORKS !! !TrainingRunner.main();
 
         // Create instances of handler classes
         VideoCaptureHandler captureHandler = new VideoCaptureHandler(0);
