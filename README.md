@@ -9,6 +9,33 @@ This project is a Java application that utilizes **OpenCV** to capture video fro
 - **Object Tracking**: Drawing bounding boxes around detected objects with classification.
 - **Custom CNN Model**: Utilizes a self-written Convolutional Neural Network (CNN) implemented from scratch in Java for object classification.
 
+### OpenCV for Java
+**OpenCV** (Open Source Computer Vision Library) provides tools and libraries for real-time computer vision. This project leverages OpenCV for:
+
+- **Video Capture**: Capturing live video from the webcam using the `VideoCapture` class.
+- **Image Processing**: Performing real-time image processing tasks such as resizing, color space conversion, and feature detection.
+- **Object Detection**: Applying custom object detection algorithms or pre-trained models to identify objects within video frames.
+- **Image Display**: Using the `HighGui` class to create windows and display images and video streams in real-time.
+- **Mouse and Keyboard Handling**: Responding to user input for interaction with the video feed.
+
+### Own CNN:
+The custom Convolutional Neural Network (CNN) implemented in Java is designed to classify and track objects from the video feed. Below are the key details and components of the CNN:
+1. **Convolutional Layers**:
+   - **Purpose**: Extract features from input images through convolution operations.
+   - **Details**: The network includes multiple convolutional layers with varying filter sizes, strides, and padding to capture different levels of abstraction in the image.
+   - **Example**: A layer with 32 filters of size 3x3, followed by a ReLU activation function.
+
+2. **Pooling Layers**:
+   - **Max Pooling**: Reduces spatial dimensions while retaining the most significant features. For example, 2x2 max pooling layers are used to downsample feature maps.
+   - **Average Pooling**: Used in conjunction with max pooling to average feature values over local regions, enhancing the robustness of feature extraction.
+
+3. **Fully Connected Layers**:
+   - **Purpose**: Flatten the output from convolutional and pooling layers and make final predictions based on extracted features.
+   - **Details**: Includes one or more fully connected layers that output the final class scores and bounding box coordinates.
+
+- Training/Testing Data : [PASCAL VOC Data](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/devkit_doc.pdf)
+  
+    
 ## Requirements
 
 - **Java Development Kit (JDK)**: Ensure you have JDK 8 or higher installed.
