@@ -1,3 +1,4 @@
+import AI_Model.Data.PascalVOCDataLoader;
 import AI_Model.ObjectClassifier;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect;
@@ -8,6 +9,10 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.highgui.HighGui;
 import org.opencv.core.Core;
 import InputOutput.*;
+import AI_Model.*;
+
+import java.io.FileNotFoundException;
+
 /**
  * The {@code ObjectTrackingApp} class initializes the components and coordinates
  * video capture, frame processing, and object classification.
@@ -17,6 +22,11 @@ public class Main {
     public static void main(String[] args) {
         // Initialize OpenCV library
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+try {
+    System.out.println(PascalVOCDataLoader.parseXML("\"C:\\Users\\jakub\\OneDrive\\Desktop\\annot.xml\"").getImageFileName());
+}catch(Exception e){
+    System.out.println("Parsing not working");
+}
 
         // Create instances of handler classes
         VideoCaptureHandler captureHandler = new VideoCaptureHandler(0);

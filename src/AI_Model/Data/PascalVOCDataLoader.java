@@ -1,58 +1,155 @@
 package AI_Model.Data;
 
-import org.opencv.core.Mat;
-import org.opencv.core.Rect;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.core.CvType;
-import org.opencv.core.Size;
-import org.xml.sax.InputSource;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class PascalVOCDataLoader {
+/**
+ * Class to process Pascal VOC XML annotation files.
+ */
+public class PascalVOCDataLoader{
 
-    public List<Mat> loadImages(String directoryPath) {
-        File dir = new File(directoryPath);
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".jpg"));
-        List<Mat> images = new ArrayList<>();
-        for (File file : files) {
-            Mat image = Imgcodecs.imread(file.getAbsolutePath());
-            images.add(image);
-        }
-        return images;
+    private final String imageFileName;
+    private final List<BoundingBox> boundingBoxes;
+
+    /**
+     * Constructor for PascalVOCAnnotation.
+     *
+     * @param imageFileName The filename of the image.
+     * @param boundingBoxes List of bounding boxes for objects in the image.
+     */
+    public PascalVOCDataLoader(String imageFileName, List<BoundingBox> boundingBoxes) {
+        this.imageFileName = imageFileName;
+        this.boundingBoxes = boundingBoxes;
     }
 
-    public List<ObjectAnnotation> loadAnnotations(String directoryPath) {
-        File dir = new File(directoryPath);
-        File[] files = dir.listFiles((d, name) -> name.endsWith(".xml"));
-        List<ObjectAnnotation> annotations = new ArrayList<>();
-        for (File file : files) {
-            try {
-                DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
-                DocumentBuilder builder = factory.newDocumentBuilder();
-                Document doc = builder.parse(new InputSource(file.getAbsolutePath()));
-                NodeList objects = doc.getElementsByTagName("object");
-                for (int i = 0; i < objects.getLength(); i++) {
-                    Node objectNode = objects.item(i);
-                    String label = objectNode.getChildNodes().item(1).getTextContent(); // Assuming label is in the second child node
-                    NodeList bndbox = objectNode.getChildNodes().item(4).getChildNodes(); // Bounding box info
-                    int x = Integer.parseInt(bndbox.item(1).getTextContent());
-                    int y = Integer.parseInt(bndbox.item(3).getTextContent());
-                    int width = Integer.parseInt(bndbox.item(5).getTextContent()) - x;
-                    int height = Integer.parseInt(bndbox.item(7).getTextContent()) - y;
-                    Rect boundingBox = new Rect(x, y, width, height);
-                    annotations.add(new ObjectAnnotation(label, boundingBox));
+    public String getImageFileName() {
+        return imageFileName;
+    }
+
+    public List<BoundingBox> getBoundingBoxes() {
+        return boundingBoxes;
+    }
+
+    /**
+     * Parses an XML annotation file and extracts the image filename and bounding boxes.
+     *
+     * @param xmlFilePath The path to the XML annotation file.
+     * @return A PascalVOCAnnotation object containing the extracted information.
+     */
+    public static PascalVOCDataLoader parseXML(String xmlFilePath) {
+        try {
+            File xmlFile = new File(xmlFilePath);
+            DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder builder = factory.newDocumentBuilder();
+            Document document = builder.parse(xmlFile);
+
+            document.getDocumentElement().normalize();
+
+            String imageFileName = "";
+            List<BoundingBox> boundingBoxes = new ArrayList<>();
+
+            NodeList sizeList = document.getElementsByTagName("size");
+            if (sizeList.getLength() > 0) {
+                Node sizeNode = sizeList.item(0);
+                if (sizeNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element sizeElement = (Element) sizeNode;
+                    // You can extract width, height, depth if needed
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+
+            NodeList objectList = document.getElementsByTagName("object");
+            for (int i = 0; i < objectList.getLength(); i++) {
+                Node objectNode = objectList.item(i);
+                if (objectNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element objectElement = (Element) objectNode;
+
+                    // Extract object name
+                    String name = objectElement.getElementsByTagName("name").item(0).getTextContent();
+
+                    // Extract bounding box coordinates
+                    Element bndboxElement = (Element) objectElement.getElementsByTagName("bndbox").item(0);
+                    int xmin = Integer.parseInt(bndboxElement.getElementsByTagName("xmin").item(0).getTextContent());
+                    int ymin = Integer.parseInt(bndboxElement.getElementsByTagName("ymin").item(0).getTextContent());
+                    int xmax = Integer.parseInt(bndboxElement.getElementsByTagName("xmax").item(0).getTextContent());
+                    int ymax = Integer.parseInt(bndboxElement.getElementsByTagName("ymax").item(0).getTextContent());
+
+                    BoundingBox boundingBox = new BoundingBox(name, xmin, ymin, xmax, ymax);
+                    boundingBoxes.add(boundingBox);
+                }
+            }
+
+            // Extract image filename
+            NodeList filenameList = document.getElementsByTagName("filename");
+            if (filenameList.getLength() > 0) {
+                Node filenameNode = filenameList.item(0);
+                if (filenameNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element filenameElement = (Element) filenameNode;
+                    imageFileName = filenameElement.getTextContent();
+                }
+            }
+
+            return new PascalVOCDataLoader(imageFileName, boundingBoxes);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
-        return annotations;
+    }
+
+    /**
+     * Inner class to represent a bounding box.
+     */
+    public static class BoundingBox {
+        private final String label;
+        private final int xmin;
+        private final int ymin;
+        private final int xmax;
+        private final int ymax;
+
+        public BoundingBox(String label, int xmin, int ymin, int xmax, int ymax) {
+            this.label = label;
+            this.xmin = xmin;
+            this.ymin = ymin;
+            this.xmax = xmax;
+            this.ymax = ymax;
+        }
+
+        public String getLabel() {
+            return label;
+        }
+
+        public int getXmin() {
+            return xmin;
+        }
+
+        public int getYmin() {
+            return ymin;
+        }
+
+        public int getXmax() {
+            return xmax;
+        }
+
+        public int getYmax() {
+            return ymax;
+        }
+
+        @Override
+        public String toString() {
+            return "BoundingBox{" +
+                    "label='" + label + '\'' +
+                    ", xmin=" + xmin +
+                    ", ymin=" + ymin +
+                    ", xmax=" + xmax +
+                    ", ymax=" + ymax +
+                    '}';
+        }
     }
 }

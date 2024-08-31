@@ -8,7 +8,7 @@ import org.opencv.core.CvType;
 import static Util.MatrixUtil.*;
 
 public class DataPreprocessor {
-
+/*
     public static void prepareTrainingData(List<Mat> images, List<ObjectAnnotation> annotations) {
         for (int i = 0; i < images.size(); i++) {
             Mat image = images.get(i);
@@ -50,5 +50,5 @@ public class DataPreprocessor {
         System.arraycopy(a, 0, result, 0, a.length);
         System.arraycopy(b, 0, result, a.length, b.length);
         return result;
-    }
+    }*/
 }

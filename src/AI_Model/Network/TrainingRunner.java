@@ -11,6 +11,7 @@ import java.util.List;
 
 
 public class TrainingRunner {
+    /*
     public static void main(String[] args) {
         String imageDir = "path/to/images";
         String annotationDir = "path/to/annotations";
@@ -28,5 +29,5 @@ public class TrainingRunner {
         // Evaluate the network
         float accuracy = network.test(images, annotations);
         System.out.println("Accuracy: " + accuracy);
-    }
+    }*/
 }
