@@ -1,9 +1,9 @@
 package AI_Model.Network;
 
-import layers.ConvolutionLayer;
-import layers.FullyConnectedLayer;
-import layers.Layer;
-import layers.MaxPoolLayer;
+import AI_Model.Layers.ConvolutionLayer;
+import AI_Model.Layers.FullyConnectedLayer;
+import AI_Model.Layers.Layer;
+import AI_Model.Layers.MaxPoolingLayer;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Size;
@@ -64,11 +64,11 @@ public class NeuralNetwork {
 
         // Add layers in a sensible order
         layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01));
-        layers.add(new MaxPoolLayer(2, 2, 32, inputRows - 2, inputCols - 2));
+        layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2));
         layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01));
-        layers.add(new MaxPoolLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2));
-        layers.add(new FullyConnectedLayer(256, 0.01, seed));
-        layers.add(new FullyConnectedLayer(5, 0.01, seed)); // Assuming 5 output values (class + bounding box)
+        layers.add(new MaxPoolingLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2));
+        layers.add(new FullyConnectedLayer(256, 64, seed,0.01));
+        layers.add(new FullyConnectedLayer(64, 5, seed,0.01)); // Assuming 5 output values (class + bounding box)
 
         return new NeuralNetwork(layers, scaleFactor);
     }
@@ -213,7 +213,7 @@ public class NeuralNetwork {
      */
     private void backpropagate(double[] errors) {
         for (int i = layers.size() - 1; i >= 0; i--) {
-            errors = layers.get(i).backPropagation(errors);
+            errors = layers.get(i).backpropagate(errors);
         }
     }
 }

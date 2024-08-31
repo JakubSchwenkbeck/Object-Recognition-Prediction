@@ -1,10 +1,6 @@
 package AI_Model.Network;
 
-import layers.ConvolutionLayer;
-import layers.FullyConnectedLayer;
-import layers.Layer;
-import layers.MaxPoolLayer;
-import layers.AveragePoolLayer;  // Assuming you have this class implemented
+import AI_Model.Layers.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +9,7 @@ import java.util.List;
  * Builder class for constructing a neural network.
  * This class facilitates the step-by-step addition of layers to the network.
  */
-public class NeuralNetworkBuilder {
+public class NetworkBuilder {
 
     private NeuralNetwork net;
     private int inputRows;
@@ -28,11 +24,11 @@ public class NeuralNetworkBuilder {
      * @param inputCols   Number of columns in the input.
      * @param scaleFactor Scaling factor applied during training.
      */
-    public NeuralNetworkBuilder(int inputRows, int inputCols, double scaleFactor) {
+    public NetworkBuilder(int inputRows, int inputCols, double scaleFactor) {
         this.inputRows = inputRows;
         this.inputCols = inputCols;
         this.scaleFactor = scaleFactor;
-        this.layers = new ArrayList<>();
+        this.layers = new ArrayList<Layer>();
     }
 
     /**
@@ -61,10 +57,10 @@ public class NeuralNetworkBuilder {
      */
     public void addMaxPoolLayer(int windowSize, int stepSize) {
         if (layers.isEmpty()) {
-            layers.add(new MaxPoolLayer(stepSize, windowSize, 1, inputRows, inputCols));
+            layers.add(new MaxPoolingLayer(stepSize, windowSize, 1, inputRows, inputCols));
         } else {
             Layer prev = layers.get(layers.size() - 1);
-            layers.add(new MaxPoolLayer(stepSize, windowSize, prev.getOutputLength(), prev.getOutputRows(), prev.getOutputCols()));
+            layers.add(new MaxPoolingLayer(stepSize, windowSize, prev.getOutputLength(), prev.getOutputRows(), prev.getOutputCols()));
         }
     }
 
@@ -76,10 +72,10 @@ public class NeuralNetworkBuilder {
      */
     public void addAveragePoolLayer(int windowSize, int stepSize) {
         if (layers.isEmpty()) {
-            layers.add(new AveragePoolLayer(stepSize, windowSize, 1, inputRows, inputCols));
+            layers.add(new AveragePoolingLayer(stepSize, windowSize, 1, inputRows, inputCols));
         } else {
             Layer prev = layers.get(layers.size() - 1);
-            layers.add(new AveragePoolLayer(stepSize, windowSize, prev.getOutputLength(), prev.getOutputRows(), prev.getOutputCols()));
+            layers.add(new AveragePoolingLayer(stepSize, windowSize, prev.getOutputLength(), prev.getOutputRows(), prev.getOutputCols()));
         }
     }
 
