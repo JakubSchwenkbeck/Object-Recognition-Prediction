@@ -1,5 +1,10 @@
 package AI_Model.Data;
 
+import org.opencv.core.CvType;
+import org.opencv.core.Mat;
+import org.opencv.core.Size;
+import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -38,6 +43,56 @@ public class PascalVOCDataLoader{
     public List<BoundingBox> getBoundingBoxes() {
         return boundingBoxes;
     }
+
+    /**
+     * Loads and preprocesses images from a list of PascalVOCDataLoader objects.
+     *
+     * @param dataLoaders A list of PascalVOCDataLoader objects.
+     * @param imageDirPath The directory where images are located.
+     * @param targetSize The target size for image resizing.
+     * @return A list of TrainingSample objects.
+     */
+    public static List<TrainingSample> loadAndPreprocessImages(List<PascalVOCDataLoader> dataLoaders, String imageDirPath, Size targetSize) {
+        List<TrainingSample> trainingSamples = new ArrayList<>();
+
+        for (PascalVOCDataLoader dataLoader : dataLoaders) {
+            String imageFilePath = imageDirPath + File.separator + dataLoader.getImageFileName();
+            Mat image = Imgcodecs.imread(imageFilePath);
+
+            if (((Mat) image).empty()) {
+                System.err.println("Failed to load image: " + imageFilePath);
+                continue;
+            }
+
+            // Preprocess the image
+            Mat preprocessedImage = preprocessImage(image, targetSize);
+
+            for (PascalVOCDataLoader.BoundingBox bbox : dataLoader.getBoundingBoxes()) {
+                TrainingSample sample = new TrainingSample(preprocessedImage, bbox);
+                trainingSamples.add(sample);
+            }
+        }
+
+        return trainingSamples;
+    }
+
+    /**
+     * Preprocesses an image by resizing and normalizing.
+     *
+     * @param image The original image.
+     * @param targetSize The target size for resizing.
+     * @return The preprocessed image.
+     */
+    public static Mat preprocessImage(Mat image, Size targetSize) {
+        Mat resizedImage = new Mat();
+        Imgproc.resize(image, resizedImage, targetSize);
+
+        // Normalize the image (optional)
+        resizedImage.convertTo(resizedImage, CvType.CV_32F, 1.0 / 255.0);
+
+        return resizedImage;
+    }
+
 
     /**
      * Parses an XML annotation file and extracts the image filename and bounding boxes.
