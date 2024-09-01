@@ -182,21 +182,48 @@ public class NeuralNetwork implements Serializable {
      * @return A label ("Human") if recognized, otherwise "None".
      */
     private String interpretOutput(double[] output) {
-        int humanLabelIndex = 0;
+        int numClasses = LABEL_TO_INDEX.size(); // Total number of classes
         double threshold = 0.5;
 
-        if (output[humanLabelIndex] > threshold) {
-            // Assuming output contains bounding box data in subsequent indices (x, y, width, height)
-            int x = (int) output[1];
-            int y = (int) output[2];
-            int width = (int) output[3];
-            int height = (int) output[4];
+        // Find the class with the highest probability
+        int bestClassIndex = -1;
+        double highestProbability = 0.0;
 
-            // Return label and bounding box information (as needed)
-            return "Human: Position (" + x + ", " + y + "), Size (" + width + "x" + height + ")";
+        for (int i = 0; i < numClasses; i++) {
+            if (output[i] > highestProbability) {
+                highestProbability = output[i];
+                bestClassIndex = i;
+            }
         }
+
+        // Check if the highest probability exceeds the threshold
+        if (bestClassIndex >= 0 && highestProbability > threshold) {
+            // Extract bounding box coordinates
+            int x = (int) output[numClasses];
+            int y = (int) output[numClasses + 1];
+            int width = (int) output[numClasses + 2];
+            int height = (int) output[numClasses + 3];
+
+            // Get the label for the best class index
+            String detectedLabel = getKeyFromValue(LABEL_TO_INDEX, bestClassIndex);
+
+            // Return label and bounding box information
+            return detectedLabel + ": Position (" + x + ", " + y + "), Size (" + width + "x" + height + ")";
+        }
+
         return "None";
     }
+
+    // Helper method to get the key from the value in the LABEL_TO_INDEX map
+    private String getKeyFromValue(Map<String, Integer> map, int value) {
+        for (Map.Entry<String, Integer> entry : map.entrySet()) {
+            if (entry.getValue().equals(value)) {
+                return entry.getKey();
+            }
+        }
+        return "Unknown";
+    }
+
 
     /**
      * Trains the neural network using a set of training images and annotations.
