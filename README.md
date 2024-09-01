@@ -2,6 +2,10 @@
 
 This project is a Java application that utilizes **OpenCV** to capture video from a webcam, perform object tracking and movement prediction, and display the video feed in real-time. It uses key components such as OpenCV library loading, camera initialization, frame capture, and image display using **HighGui**. Additionally, the application integrates a custom Convolutional Neural Network (**CNN**) written from **scratch** in Java to classify and track objects in the video feed.
 
+![image](https://github.com/user-attachments/assets/660b0931-ad11-417b-86f9-d04adeb78551)![image](https://github.com/user-attachments/assets/ae83c22d-dc77-4101-b0d2-f8c1e5d07aab)
+
+
+
 ## Features
 
 - **OpenCV Integration**: Uses OpenCV for real-time video processing.
@@ -34,7 +38,6 @@ The custom Convolutional Neural Network (CNN) implemented in Java is designed to
    - **Details**: Includes one or more fully connected layers that output the final class scores and bounding box coordinates.
 
 - Training/Testing Data : [PASCAL VOC Data](http://host.robots.ox.ac.uk/pascal/VOC/voc2012/devkit_doc.pdf)
-  
     
 ## Requirements
 
