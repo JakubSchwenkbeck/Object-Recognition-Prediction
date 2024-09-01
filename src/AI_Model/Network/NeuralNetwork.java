@@ -225,16 +225,13 @@ public class NeuralNetwork implements Serializable {
     }
 
 
-    /**
-     * Trains the neural network using a set of training images and annotations.
-     *
-     * @param images    List of images to train on.
-     * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
-     */
+
 
     public void train(List<TrainingSample> trainingSamples) {
         for (TrainingSample sample : trainingSamples) {
             Mat image = sample.getImage();
+            System.out.println("Loaded Image!");
+
             PascalVOCDataLoader.BoundingBox boundingBox = sample.getBoundingBox();
 
             Mat resizedFrame = preprocessFrame(image);
@@ -256,6 +253,7 @@ public class NeuralNetwork implements Serializable {
             outputVector[numClasses + 2] = boundingBox.getXmax() - boundingBox.getXmin();
             outputVector[numClasses + 3] = boundingBox.getYmax() - boundingBox.getYmin();
 
+            System.out.println("Forwardpass!!");
             // Perform forward pass and update weights (backpropagation)
             double[] networkOutput = forwardPass(inputVector);
             double[] dldO = getErrors(networkOutput, outputVector);
