@@ -7,6 +7,9 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.CvType;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import static Util.MatrixUtil.*;
 
 import java.io.Serializable;
@@ -24,6 +27,32 @@ public class NeuralNetwork implements Serializable {
 
     private final List<Layer> layers;
     private final double scaleFactor;
+
+    private static final Map<String, Integer> LABEL_TO_INDEX = new HashMap<>();
+
+    static {
+        // Initialize your class labels here
+        LABEL_TO_INDEX.put("person", 0);
+        LABEL_TO_INDEX.put("bird", 1);
+        LABEL_TO_INDEX.put("cat", 2);
+        LABEL_TO_INDEX.put("cow", 3);
+        LABEL_TO_INDEX.put("dog", 4);
+        LABEL_TO_INDEX.put("horse", 5);
+        LABEL_TO_INDEX.put("sheep", 6);
+        LABEL_TO_INDEX.put("aeroplane", 7);
+        LABEL_TO_INDEX.put("bicycle", 8);
+        LABEL_TO_INDEX.put("boat", 9);
+        LABEL_TO_INDEX.put("bus", 10);
+        LABEL_TO_INDEX.put("car", 11);
+        LABEL_TO_INDEX.put("motorbike", 12);
+        LABEL_TO_INDEX.put("train", 13);
+        LABEL_TO_INDEX.put("bottle", 14);
+        LABEL_TO_INDEX.put("chair", 15);
+        LABEL_TO_INDEX.put("dining table", 16);
+        LABEL_TO_INDEX.put("potted plant", 17);
+        LABEL_TO_INDEX.put("sofa", 18);
+        LABEL_TO_INDEX.put("tvmonitor", 19);
+    }
 
     /**
      * Constructor for NeuralNetwork.
@@ -175,31 +204,37 @@ public class NeuralNetwork implements Serializable {
      * @param images    List of images to train on.
      * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
      */
-    public void train(List<Mat> images, List<PascalVOCDataLoader> annotations) {
-        for (int i = 0; i < images.size(); i++) {
-            Mat image = images.get(i);
-            PascalVOCDataLoader annotation = annotations.get(i);
+
+    public void train(List<TrainingSample> trainingSamples) {
+        for (TrainingSample sample : trainingSamples) {
+            Mat image = sample.getImage();
+            PascalVOCDataLoader.BoundingBox boundingBox = sample.getBoundingBox();
 
             Mat resizedFrame = preprocessFrame(image);
             double[] inputVector = convertMatToInputVector(resizedFrame);
 
-            // Prepare the output vector (assumed format: [label, x, y, width, height])
-            double[] outputVector = new double[5]; // Adjust size if necessary
-            for (PascalVOCDataLoader.BoundingBox bbox : annotation.getBoundingBoxes()) {
-                // Set output values (this is just a placeholder, adjust as needed)
-                outputVector[0] = bbox.getLabel().equals("person") ? 1.0 : 0.0;
-                outputVector[1] = bbox.getXmin();
-                outputVector[2] = bbox.getYmin();
-                outputVector[3] = bbox.getXmax() - bbox.getXmin();
-                outputVector[4] = bbox.getYmax() - bbox.getYmin();
+            // Prepare the output vector
+            int numClasses = LABEL_TO_INDEX.size(); // Number of classes is now 20
+            double[] outputVector = new double[numClasses + 4]; // numClasses for one-hot encoding + 4 for bbox
+
+            // Set the one-hot encoded label
+            Integer classIndex = LABEL_TO_INDEX.get(boundingBox.getLabel());
+            if (classIndex != null) {
+                outputVector[classIndex] = 1.0; // Set the corresponding index to 1.0
             }
+
+            // Set bounding box coordinates
+            outputVector[numClasses] = boundingBox.getXmin();
+            outputVector[numClasses + 1] = boundingBox.getYmin();
+            outputVector[numClasses + 2] = boundingBox.getXmax() - boundingBox.getXmin();
+            outputVector[numClasses + 3] = boundingBox.getYmax() - boundingBox.getYmin();
 
             // Perform forward pass and update weights (backpropagation)
             double[] networkOutput = forwardPass(inputVector);
             double[] dldO = getErrors(networkOutput, outputVector);
-            layers.get((layers.size()-1)).backpropagate(dldO);
-
+            layers.get(layers.size() - 1).backpropagate(dldO);
         }
+
     }
 
     /**
