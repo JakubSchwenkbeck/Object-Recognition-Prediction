@@ -21,7 +21,7 @@ public class ObjectClassifier {
 
     net = NeuralNetwork.loadNetwork("FILEPATH");
 
-    // net.classifiy(frame);
+    // net.recognizeObject(frame);
 
 
     public String classify(Mat frame) {
