@@ -111,6 +111,7 @@ public class NeuralNetwork implements Serializable {
 
         layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01)); // 2nd Conv Layer
        // layers.add(new AveragePoolingLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2)); // Avg Pooling Layer 2
+        layers.add(new MaxPoolingLayer(2, 2, 64, inputRows - 2, inputCols - 2)); // Max Pooling Layer 2
 
         layers.add(new ConvolutionLayer(3, 1, 64, (inputRows - 6) / 4, (inputCols - 6) / 4, seed, 128, 0.01)); // 3rd Conv Layer
         layers.add(new MaxPoolingLayer(2, 2, 128, (inputRows - 8) / 4, (inputCols - 8) / 4)); // Max Pooling Layer 3
