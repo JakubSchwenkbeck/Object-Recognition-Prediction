@@ -4,7 +4,7 @@ import org.opencv.core.Mat;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import Network.*;
+//import Network.*;
 /**
  * The {@code AI_Model.ObjectClassifier} class contains methods for classifying objects
  * in video frames using AI.
@@ -19,7 +19,7 @@ public class ObjectClassifier {
      */
 
 
-    net = NeuralNetwork.loadNetwork("FILEPATH");
+   // net = NeuralNetwork.loadNetwork("FILEPATH");
 
     // net.recognizeObject(frame);
 
