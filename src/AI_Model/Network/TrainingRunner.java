@@ -16,8 +16,8 @@ public class TrainingRunner {
         String imageDirPath = "C:/Users/jakub/IdeaProjects/PascalVOC_Data/VOC2012_test/JPEGImages";
         Size targetSize = new Size(256, 256); // Adjust to CNN input size
 
-        List<PascalVOCDataLoader> dataLoaders =PascalVOCDataLoader.loadDir(xmlDirPath);
-        List<TrainingSample> trainingSamples = PascalVOCDataLoader.loadAndPreprocessImages(dataLoaders, imageDirPath, targetSize);
+        List<PascalVOCDataLoader> dataLoaders =PascalVOCDataLoader.loadDir(xmlDirPath,5);
+        List<TrainingSample> trainingSamples = PascalVOCDataLoader.loadAndPreprocessImages(dataLoaders, imageDirPath, targetSize,5);
         net.train(trainingSamples);
     }
 }
