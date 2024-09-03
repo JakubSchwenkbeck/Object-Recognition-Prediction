@@ -158,7 +158,11 @@ public abstract class Layer implements Serializable {
 
             for (int r = 0; r < rows; r++) {
                 for (int c = 0; c < cols; c++) {
-                    matrix[r][c] = input[index++];
+                    if (index < input.length) {
+                        matrix[r][c] = input[index++];
+                    } else {
+                        matrix[r][c] = 0; // Fill with zero if input is too short
+                    }
                 }
             }
 
