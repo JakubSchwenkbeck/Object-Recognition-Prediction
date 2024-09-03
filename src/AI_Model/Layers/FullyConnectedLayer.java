@@ -34,9 +34,9 @@ public class FullyConnectedLayer extends Layer {
         this.seed = seed;
         this.learningRate = learningRate;
 
-        weights = new double[inputSize][outputSize];
-        lastZ = new double[outputSize];
-        lastInput = new double[inputSize];
+        weights = new double[inputSize+ 1][outputSize+1 ];
+        lastZ = new double[outputSize+ 1];
+        lastInput = new double[inputSize+ 1];
         initializeWeights(); // Initialize weights randomly
     }
 
@@ -48,7 +48,7 @@ public class FullyConnectedLayer extends Layer {
      */
     public double[] forwardPass(double[] input) {
         lastInput = input;
-
+        //System.out.println("New Forwardpass!");
         double[] z = new double[outputSize];
         double[] output = new double[outputSize];
 
@@ -56,14 +56,19 @@ public class FullyConnectedLayer extends Layer {
         for (int j = 0; j < outputSize; j++) {
             z[j] = 0; // Initialize z[j]
             for (int i = 0; i < inputSize; i++) {
-                System.out.println("Z lenght: " + z.length);
-                System.out.println("in lenght: " + input.length);
-                System.out.println("wei lenght1: " + weights.length);
-                System.out.println("wei lenght2: " + weights[i].length);
-                System.out.println("i " + i);
-                System.out.println("j " + j);
-
-                z[j] += input[i] * weights[i][j];
+                //System.out.println("Z lenght: " + z.length);
+                //System.out.println("in lenght: " + input.length);
+                //System.out.println("wei lenght1: " + weights.length);
+                //System.out.println("wei lenght2: " + weights[i].length);
+                //System.out.println("i " + i);
+                //System.out.println("j " + j);
+                try {
+                    z[j] += input[i] * weights[i][j];
+                }catch(ArrayIndexOutOfBoundsException e){
+                    if(z.length < j ){
+                        z[j] = 0;
+                    }
+                }
             }
         }
 
@@ -121,7 +126,12 @@ public class FullyConnectedLayer extends Layer {
                 double dOdz = reluDerivative(lastZ[j]);
 
                 // The derivative of z[j] with respect to weight w[i][j] is the input value lastInput[i]
-                double dzdw = lastInput[i];
+                double dzdw= 0;
+                if(lastInput.length > i) {
+                     dzdw = lastInput[i];
+                }else{
+                     dzdw = 1000;
+                }
 
                 // The derivative of z[j] with respect to the input x[i] is the weight w[i][j]
                 double dzdx = weights[i][j];
