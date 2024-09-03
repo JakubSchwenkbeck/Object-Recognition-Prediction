@@ -52,15 +52,20 @@ public class PascalVOCDataLoader{
      * @param targetSize The target size for image resizing.
      * @return A list of TrainingSample objects.
      */
-    public static List<TrainingSample> loadAndPreprocessImages(List<PascalVOCDataLoader> dataLoaders, String imageDirPath, Size targetSize) {
+    public static List<TrainingSample> loadAndPreprocessImages(List<PascalVOCDataLoader> dataLoaders, String imageDirPath, Size targetSize, int maxImages) {
         List<TrainingSample> trainingSamples = new ArrayList<>();
-int counter = 0;
+        int counter = 0;
+
         for (PascalVOCDataLoader dataLoader : dataLoaders) {
-            System.out.println("Loading Dataset Nr : " + counter++);
+            if (counter >= maxImages) {
+                break; // Stop processing if the maximum number of images is reached
+            }
+
+            System.out.println("Loading Dataset Nr : " + counter);
             String imageFilePath = imageDirPath + File.separator + dataLoader.getImageFileName();
             Mat image = Imgcodecs.imread(imageFilePath);
 
-            if (((Mat) image).empty()) {
+            if (image.empty()) {
                 System.err.println("Failed to load image: " + imageFilePath);
                 continue;
             }
@@ -72,6 +77,8 @@ int counter = 0;
                 TrainingSample sample = new TrainingSample(preprocessedImage, bbox);
                 trainingSamples.add(sample);
             }
+
+            counter++; // Increment the counter for each successfully processed image
         }
 
         return trainingSamples;
@@ -165,7 +172,7 @@ int counter = 0;
      * @param dirPath The path to the directory containing XML files.
      * @return A list of PascalVOCDataLoader objects, each representing an annotation file.
      */
-    public static List<PascalVOCDataLoader> loadDir(String dirPath) {
+    public static List<PascalVOCDataLoader> loadDir(String dirPath, int maxFiles) {
         List<PascalVOCDataLoader> dataLoaders = new ArrayList<>();
         File dir = new File(dirPath);
 
@@ -179,10 +186,15 @@ int counter = 0;
             });
 
             if (xmlFiles != null) {
+                int count = 0;
                 for (File xmlFile : xmlFiles) {
+                    if (count >= maxFiles) {
+                        break; // Stop loading if the maximum number of files is reached
+                    }
                     PascalVOCDataLoader dataLoader = parseXML(xmlFile.getAbsolutePath());
                     if (dataLoader != null) {
                         dataLoaders.add(dataLoader);
+                        count++;
                     }
                 }
             }
@@ -192,6 +204,7 @@ int counter = 0;
 
         return dataLoaders;
     }
+
     /**
      * Inner class to represent a bounding box.
      */
