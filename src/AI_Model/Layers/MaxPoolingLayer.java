@@ -61,9 +61,18 @@ public class MaxPoolingLayer extends Layer {
      * @param input The input matrix to pool.
      * @return The pooled matrix.
      */
+    /**
+     * Applies max pooling operation on a single matrix.
+     *
+     * @param input The input matrix to pool.
+     * @return The pooled matrix.
+     */
     private double[][] applyPooling(double[][] input) {
-        int outputRows = getOutputRows();
-        int outputCols = getOutputCols();
+        int inputHeight = input.length;
+        int inputWidth = input[0].length;
+
+        int outputRows = (inputHeight - poolSize) / stride + 1;
+        int outputCols = (inputWidth - poolSize) / stride + 1;
 
         double[][] output = new double[outputRows][outputCols];
         int[][] maxRows = new int[outputRows][outputCols];
@@ -72,13 +81,16 @@ public class MaxPoolingLayer extends Layer {
         for (int r = 0; r < outputRows; r++) {
             for (int c = 0; c < outputCols; c++) {
                 double max = Double.NEGATIVE_INFINITY;
-                maxRows[r][c] = -1;
-                maxCols[r][c] = -1;
+
+                int startRow = r * stride;
+                int startCol = c * stride;
 
                 for (int x = 0; x < poolSize; x++) {
                     for (int y = 0; y < poolSize; y++) {
-                        int row = r * stride + x;
-                        int col = c * stride + y;
+                        int row = startRow + x;
+                        int col = startCol + y;
+
+                        // Check to ensure we're within bounds
                         if (row < inputHeight && col < inputWidth && input[row][col] > max) {
                             max = input[row][col];
                             maxRows[r][c] = row;
