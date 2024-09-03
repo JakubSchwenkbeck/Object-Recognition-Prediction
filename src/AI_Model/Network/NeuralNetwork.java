@@ -307,11 +307,12 @@ public class NeuralNetwork implements Serializable {
             outputVector[numClasses + 2] = boundingBox.getXmax() - boundingBox.getXmin();
             outputVector[numClasses + 3] = boundingBox.getYmax() - boundingBox.getYmin();
 
-            System.out.println("Forwardpass!!");
+
             // Perform forward pass and update weights (backpropagation)
             double[] networkOutput = forwardPass(inputVector);
-            double[] dldO = getErrors(networkOutput, outputVector);
-            layers.get(layers.size() - 1).backpropagate(dldO);
+            //double[] dldO = getErrors(networkOutput, outputVector);
+            //layers.get(layers.size() - 1).backpropagate(dldO);
+            System.out.println("Trained!!");
         }
 
     }
