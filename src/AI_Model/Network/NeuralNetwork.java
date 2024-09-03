@@ -66,6 +66,17 @@ public class NeuralNetwork implements Serializable {
         linkLayers();
     }
 
+    public NeuralNetwork loadNetwork(String filePath) {
+    NeuralNetwork network = null;
+    try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(filePath))) {
+        network = (NeuralNetwork) ois.readObject();
+        System.out.println("Neural network loaded from " + filePath);
+    } catch (IOException | ClassNotFoundException e) {
+        e.printStackTrace();
+    }
+    return network;
+}
+
     public void saveNetwork(NeuralNetwork network, String filePath) {
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(filePath))) {
             oos.writeObject(network);
