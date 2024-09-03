@@ -56,6 +56,13 @@ public class FullyConnectedLayer extends Layer {
         for (int j = 0; j < outputSize; j++) {
             z[j] = 0; // Initialize z[j]
             for (int i = 0; i < inputSize; i++) {
+                System.out.println("Z lenght: " + z.length);
+                System.out.println("in lenght: " + input.length);
+                System.out.println("wei lenght1: " + weights.length);
+                System.out.println("wei lenght2: " + weights[i].length);
+                System.out.println("i " + i);
+                System.out.println("j " + j);
+
                 z[j] += input[i] * weights[i][j];
             }
         }
