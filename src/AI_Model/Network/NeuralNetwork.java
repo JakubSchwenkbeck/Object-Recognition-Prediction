@@ -106,7 +106,7 @@ public class NeuralNetwork implements Serializable {
         List<Layer> layers = new ArrayList<>();
 
         // Add layers in a sensible order with alternating pooling types
-        layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01)); // 1st Conv Layer
+       /* layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01)); // 1st Conv Layer
         layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2)); // Max Pooling Layer 1
 
         layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01)); // 2nd Conv Layer
@@ -118,6 +118,42 @@ public class NeuralNetwork implements Serializable {
 
         layers.add(new FullyConnectedLayer(512, 128, seed, 0.01)); // 1st Fully Connected Layer
         layers.add(new FullyConnectedLayer(128, 5, seed, 0.01)); // 2nd Fully Connected Layer (output: label + bounding box)
+*/
+        // Initial Convolutional Layer: 32 filters, 3x3 kernel, stride of 1, no padding
+    /*    layers.add(new ConvolutionLayer(3, 1, 1, inputRows, inputCols, seed, 32, 0.01));
+
+// Max Pooling Layer: 2x2 pooling, 32 input channels, reduces the feature map size by half
+        layers.add(new MaxPoolingLayer(2, 2, 32, inputRows - 2, inputCols - 2));
+
+// Second Convolutional Layer: 64 filters, 3x3 kernel, stride of 1, no padding
+        layers.add(new ConvolutionLayer(3, 1, 32, (inputRows - 2) / 2, (inputCols - 2) / 2, seed, 64, 0.01));
+
+// Max Pooling Layer: 2x2 pooling, 64 input channels, reduces the feature map size by half again
+        layers.add(new MaxPoolingLayer(2, 2, 64, (inputRows - 4) / 2, (inputCols - 4) / 2));
+
+// Fully Connected Layer: 128 neurons connected to the flattened output of the previous layer
+        layers.add(new FullyConnectedLayer(128, 64, seed, 0.01));
+
+// Output Layer: 5 outputs (for label and bounding box coordinates)
+        layers.add(new FullyConnectedLayer(64, 5, seed, 0.01));
+*/
+        // First Convolutional Layer
+        layers.add(new ConvolutionLayer(3, 3, 1, 256, 256, seed, 32, 0.01));
+
+// First Max Pooling Layer
+        layers.add(new MaxPoolingLayer(2, 2, 32, 254, 254));
+
+// Second Convolutional Layer
+        layers.add(new ConvolutionLayer(3, 1, 32, 127, 127, seed, 64, 0.01));
+
+// Second Max Pooling Layer
+        layers.add(new MaxPoolingLayer(2, 2, 64, 125, 125));
+
+// First Fully Connected Layer
+        layers.add(new FullyConnectedLayer(246016, 128, seed, 0.01));
+
+// Output Layer
+        layers.add(new FullyConnectedLayer(128, 5, seed, 0.01));
 
         return new NeuralNetwork(layers, scaleFactor);
     }
