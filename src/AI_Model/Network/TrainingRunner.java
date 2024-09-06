@@ -18,6 +18,6 @@ public class TrainingRunner {
 
         List<PascalVOCDataLoader> dataLoaders =PascalVOCDataLoader.loadDir(xmlDirPath,5);
         List<TrainingSample> trainingSamples = PascalVOCDataLoader.loadAndPreprocessImages(dataLoaders, imageDirPath, targetSize,5);
-        net.train(trainingSamples);
+       // net.train(trainingSamples);
     }
 }
