@@ -389,7 +389,7 @@ public class NeuralNetwork implements Serializable {
         }
         return index;
     }
-
+/*
     public int guessClass(double[] networkOutput) {
         // The first 20 outputs represent the classification.
         double[] classScores = Arrays.copyOfRange(networkOutput, 0, 20);
@@ -407,7 +407,7 @@ public class NeuralNetwork implements Serializable {
             List<Mat> inList = new ArrayList<>();
             inList.add(TS.getImage());
 
-            double[] out = layers.get(0).getOutput(inList);
+            double[] out = layers.get(0).getOutput(convertMatToInputVector(TS.getImage()));
             int guessedClass = guessClass(out);
 
             // Optional: Test bounding box prediction accuracy here if needed
@@ -443,28 +443,28 @@ public class NeuralNetwork implements Serializable {
        /* } else {
             throw new IllegalArgumentException("Input Mat type must be CV_64F (double precision).");
         }
-*/
+
         return array;
     }
 
 
-    public void train(List<Image> images) {
-        for (Image img : images) {
-            List<double[][]> inList = new ArrayList<>();
-            inList.add(multiply(img.getData(), (1.0 / scaleFactor)));
+    public void train(List<TrainingSample> trainingSamples) {
+        for (TrainingSample TS : trainingSamples) {
+            List<Mat> inList = new ArrayList<>();
+            inList.add(TS.getImage());
 
             double[] out = layers.get(0).getOutput(inList);
 
             // Prepare the correct class label and true bounding box coordinates
-            int correctClass = img.getLabel();
-            double[] trueBoundingBox = img.getBoundingBox();  // Assuming this method exists in Image class
+            int correctClass = TS.getLabel();
+            PascalVOCDataLoader.BoundingBox trueBoundingBox = TS.getBoundingBox();  // Assuming this method exists in Image class
 
             // Calculate the error
             double[] dldO = getErrors(out, correctClass, trueBoundingBox);
 
             // Backpropagate the errors
-            _layers.get(_layers.size() - 1).backPropagation(dldO);
+            layers.get(layers.size() - 1).backpropagate(dldO);
         }
     }
-
+*/
 }
