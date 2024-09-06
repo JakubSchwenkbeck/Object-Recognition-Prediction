@@ -161,7 +161,7 @@ public class NeuralNetwork implements Serializable {
         layers.add(new FullyConnectedLayer(246016, 128, seed, 0.01));
 
 // Output Layer
-        layers.add(new FullyConnectedLayer(128, 5, seed, 0.01));
+        layers.add(new FullyConnectedLayer(128, 25, seed, 0.01));
 
         return new NeuralNetwork(layers, scaleFactor);
     }
@@ -324,20 +324,20 @@ public class NeuralNetwork implements Serializable {
      * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
      * @return The accuracy of the neural network.
      */
-    public float test(List<Mat> images, List<PascalVOCDataLoader> annotations) {
+    public float test(List<TrainingSample> testsamples,List<PascalVOCDataLoader> annotations) {
         int correct = 0;
 
-        for (int i = 0; i < images.size(); i++) {
-            Mat image = images.get(i);
+        for (int i = 0; i < testsamples.size(); i++) {
+            Mat image = testsamples.get(i).getImage();
             PascalVOCDataLoader annotation = annotations.get(i);
 
             String prediction = recognizeObject(image);
-            if (prediction.equals("Human")) {
+            if (prediction.equals("person")) {
                 correct++;
             }
         }
 
-        return (float) correct / images.size();
+        return (float) correct / testsamples.size();
     }
 
     /**
