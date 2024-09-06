@@ -16,6 +16,6 @@ public class Testrunner {
 
         List<PascalVOCDataLoader> dataLoaders =PascalVOCDataLoader.loadDir(xmlDirPath,5);
         List<TrainingSample> trainingSamples = PascalVOCDataLoader.loadAndPreprocessImages(dataLoaders, imageDirPath, targetSize,5);
-        net.test(trainingSamples,dataLoaders);
+        System.out.println(net.test(trainingSamples,dataLoaders));
     }
 }
