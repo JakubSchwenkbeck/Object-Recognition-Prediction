@@ -8,13 +8,10 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.core.CvType;
 
 import java.io.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import static Util.MatrixUtil.*;
-
-import java.util.ArrayList;
-import java.util.List;
+import static org.opencv.core.Core.multiply;
 
 /**
  * Class representing a neural network.
@@ -280,7 +277,7 @@ public class NeuralNetwork implements Serializable {
 
 
 
-    public void train(List<TrainingSample> trainingSamples) {
+    /*public void train(List<TrainingSample> trainingSamples) {
         for (TrainingSample sample : trainingSamples) {
             Mat image = sample.getImage();
             System.out.println("Loaded Image!");
@@ -323,7 +320,7 @@ public class NeuralNetwork implements Serializable {
      * @param annotations List of PascalVOCAnnotation objects corresponding to the images.
      * @return The accuracy of the neural network.
      */
-    public float test(List<TrainingSample> testsamples,List<PascalVOCDataLoader> annotations) {
+    /*public float test(List<TrainingSample> testsamples,List<PascalVOCDataLoader> annotations) {
         int correct = 0;
 
         for (int i = 0; i < annotations.size(); i++) {
@@ -338,14 +335,14 @@ public class NeuralNetwork implements Serializable {
 
         return (float) correct / annotations.size();
     }
-
+/*
     /**
      * Computes the error between the network's output and the correct label.
      *
      * @param networkOutput The output produced by the network.
      * @param correctLabel  The correct label.
      * @return An array representing the error.
-     */
+
     private double[] getErrors(double[] networkOutput, double[] correctLabel) {
         double[] errors = new double[networkOutput.length];
         for (int i = 0; i < networkOutput.length; i++) {
@@ -353,6 +350,121 @@ public class NeuralNetwork implements Serializable {
         }
         return errors;
     }
+*/
 
+
+
+    public double[] getErrors(double[] networkOutput, int correctClass, double[] trueBoundingBox) {
+        // The networkOutput array now contains both classification and bounding box coordinates.
+        // Assuming the first 20 outputs are the class scores, and the remaining 4 are bounding box coordinates.
+        int numClasses = 20;  // Adjust for number of object classes
+        int totalOutput = numClasses + 4;  // Class scores + 4 bounding box values
+
+        double[] errors = new double[totalOutput];
+
+        // Classification error (cross-entropy loss or a simpler approximation)
+        double[] expectedClass = new double[numClasses];
+        expectedClass[correctClass] = 1;
+        double[] classificationError = add(Arrays.copyOfRange(networkOutput, 0, numClasses), mul(expectedClass, -1));
+
+        // Bounding box error (mean squared error for each coordinate: x, y, width, height)
+        double[] predictedBoundingBox = Arrays.copyOfRange(networkOutput, numClasses, totalOutput);
+        double[] boundingBoxError = add(predictedBoundingBox, mul(trueBoundingBox, -1));  // assuming we want simple difference
+
+        // Combine the classification and bounding box errors
+        System.arraycopy(classificationError, 0, errors, 0, numClasses);
+        System.arraycopy(boundingBoxError, 0, errors, numClasses, 4);
+
+        return errors;
+    }
+
+    private int getMaxIndex(double[] in) {
+        double max = 0;
+        int index = 0;
+        for (int i = 0; i < in.length; i++) {
+            if (in[i] >= max) {
+                max = in[i];
+                index = i;
+            }
+        }
+        return index;
+    }
+
+    public int guessClass(double[] networkOutput) {
+        // The first 20 outputs represent the classification.
+        double[] classScores = Arrays.copyOfRange(networkOutput, 0, 20);
+        return getMaxIndex(classScores);  // Return the class with the highest score
+    }
+
+    public double[] guessBoundingBox(double[] networkOutput) {
+        // The last 4 outputs represent the bounding box.
+        return Arrays.copyOfRange(networkOutput, 20, 24);  // Return the bounding box coordinates
+    }
+
+    public float test(List<TrainingSample> trainingSamples) {
+        int correct = 0;
+        for (TrainingSample TS : trainingSamples) {
+            List<Mat> inList = new ArrayList<>();
+            inList.add(TS.getImage());
+
+            double[] out = layers.get(0).getOutput(inList);
+            int guessedClass = guessClass(out);
+
+            // Optional: Test bounding box prediction accuracy here if needed
+            // double[] guessedBoundingBox = guessBoundingBox(out);
+
+            if (guessedClass == TS.()) { // annot
+                correct++;
+            }
+        }
+        return ((float) correct / images.size());
+    }
+
+    public double[][] matToDoubleArray(Mat mat) {
+        // Get the number of rows and columns from the Mat
+        int rows = mat.rows();
+        int cols = mat.cols();
+
+        // Initialize a double[][] array to store the values
+        double[][] array = new double[rows][cols];
+
+        // Check if the Mat type is CV_64F (for double precision floating point)
+        //if (mat.type() == CvType.CV_64F) {
+            // Buffer to store the data from the Mat
+            double[] data = new double[cols];
+
+            // Iterate over each row and copy the data to the array
+            for (int i = 0; i < rows; i++) {
+                // Get the ith row data and store in the buffer
+                mat.get(i, 0, data);
+                // Copy the buffer into the respective row of the array
+                System.arraycopy(data, 0, array[i], 0, cols);
+            }
+       /* } else {
+            throw new IllegalArgumentException("Input Mat type must be CV_64F (double precision).");
+        }
+*/
+        return array;
+    }
+
+
+    public void train(List<Image> images) {
+        for (Image img : images) {
+            List<double[][]> inList = new ArrayList<>();
+            inList.add(multiply(img.getData(), (1.0 / scaleFactor)));
+
+            double[] out = layers.get(0).getOutput(inList);
+
+            // Prepare the correct class label and true bounding box coordinates
+            int correctClass = img.getLabel();
+            double[] trueBoundingBox = img.getBoundingBox();  // Assuming this method exists in Image class
+
+            // Calculate the error
+            double[] dldO = getErrors(out, correctClass, trueBoundingBox);
+
+            // Backpropagate the errors
+            _layers.get(_layers.size() - 1).backPropagation(dldO);
+        }
+    }
 
 }
