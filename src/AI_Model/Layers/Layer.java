@@ -171,4 +171,6 @@ public abstract class Layer implements Serializable {
 
         return output;
     }
+
+   abstract public double[] getOutput(List<double[][]> inList) ;
 }
