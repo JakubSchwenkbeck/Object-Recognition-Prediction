@@ -60,7 +60,6 @@ public class NeuralNetwork implements Serializable {
     public NeuralNetwork(List<Layer> layers, double scaleFactor) {
         this.layers = layers;
         this.scaleFactor = scaleFactor;
-        linkLayers();
     }
 
     public NeuralNetwork loadNetwork(String filePath) {
@@ -86,7 +85,7 @@ public class NeuralNetwork implements Serializable {
     /**
      * Links the layers together by setting the previous and next layers.
      */
-    private void linkLayers() {
+    private static void linkLayers(List<Layer> layers) {
         if (layers.size() <= 1) return;
 
         for (int i = 0; i < layers.size(); i++) {
@@ -162,7 +161,7 @@ public class NeuralNetwork implements Serializable {
 
 // Output Layer
         layers.add(new FullyConnectedLayer(128, 25, seed, 0.01));
-
+        NeuralNetwork.linkLayers(layers);
         return new NeuralNetwork(layers, scaleFactor);
     }
 
@@ -310,8 +309,8 @@ public class NeuralNetwork implements Serializable {
 
             // Perform forward pass and update weights (backpropagation)
             double[] networkOutput = forwardPass(inputVector);
-            //double[] dldO = getErrors(networkOutput, outputVector);
-            //layers.get(layers.size() - 1).backpropagate(dldO);
+            double[] dldO = getErrors(networkOutput, outputVector);
+            layers.get(layers.size() - 1).backpropagate(dldO);
             System.out.println("Trained!!");
         }
 
@@ -327,7 +326,7 @@ public class NeuralNetwork implements Serializable {
     public float test(List<TrainingSample> testsamples,List<PascalVOCDataLoader> annotations) {
         int correct = 0;
 
-        for (int i = 0; i < testsamples.size(); i++) {
+        for (int i = 0; i < annotations.size(); i++) {
             Mat image = testsamples.get(i).getImage();
             PascalVOCDataLoader annotation = annotations.get(i);
 
@@ -337,7 +336,7 @@ public class NeuralNetwork implements Serializable {
             }
         }
 
-        return (float) correct / testsamples.size();
+        return (float) correct / annotations.size();
     }
 
     /**
