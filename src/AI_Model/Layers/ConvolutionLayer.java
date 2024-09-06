@@ -283,4 +283,9 @@ public class ConvolutionLayer extends Layer {
     public int getTotalOutputElements() {
         return getOutputCols() * getOutputRows() * getOutputLength();
     }
+
+    @Override
+    public double[] getOutput(List<double[][]> inList) {
+        return new double[0];
+    }
 }

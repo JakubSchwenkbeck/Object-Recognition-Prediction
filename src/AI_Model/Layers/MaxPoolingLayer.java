@@ -189,4 +189,9 @@ public class MaxPoolingLayer extends Layer {
     public int getTotalOutputElements() {
         return inputDepth * getOutputRows() * getOutputCols();
     }
+
+    @Override
+    public double[] getOutput(List<double[][]> inList) {
+        return new double[0];
+    }
 }

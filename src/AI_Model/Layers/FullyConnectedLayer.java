@@ -182,6 +182,11 @@ public class FullyConnectedLayer extends Layer {
         return outputSize;
     }
 
+    @Override
+    public double[] getOutput(List<double[][]> inList) {
+        return new double[0];
+    }
+
     /**
      * Initializes weights with random values using a Gaussian distribution.
      * <p>
