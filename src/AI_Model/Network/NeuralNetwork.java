@@ -389,7 +389,7 @@ public class NeuralNetwork implements Serializable {
         }
         return index;
     }
-/*
+
     public int guessClass(double[] networkOutput) {
         // The first 20 outputs represent the classification.
         double[] classScores = Arrays.copyOfRange(networkOutput, 0, 20);
@@ -440,7 +440,7 @@ public class NeuralNetwork implements Serializable {
                 // Copy the buffer into the respective row of the array
                 System.arraycopy(data, 0, array[i], 0, cols);
             }
-       /* } else {
+        else {
             throw new IllegalArgumentException("Input Mat type must be CV_64F (double precision).");
         }
 
@@ -466,5 +466,5 @@ public class NeuralNetwork implements Serializable {
             layers.get(layers.size() - 1).backpropagate(dldO);
         }
     }
-*/
+
 }
