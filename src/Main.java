@@ -31,6 +31,7 @@ try {
     System.out.println("Parsing not working");
 }
         // WORKS !! !
+        
         TrainingRunner.main();
         Testrunner.main();
 
