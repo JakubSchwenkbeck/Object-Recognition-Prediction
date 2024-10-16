@@ -54,8 +54,8 @@ The custom Convolutional Neural Network (CNN) implemented in Java is designed to
 
 2. **Clone the Repository**:
     ```sh
-    git clone <repository_url>
-    cd <repository_name>
+    git clone https://github.com/JakubSchwenkbeck/Object-Recognition-Prediction
+    cd Object-Recognition-Prediction
     ```
 
 3. **Open the Project**:
