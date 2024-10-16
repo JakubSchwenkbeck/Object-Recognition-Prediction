@@ -413,11 +413,11 @@ public class NeuralNetwork implements Serializable {
             // Optional: Test bounding box prediction accuracy here if needed
             // double[] guessedBoundingBox = guessBoundingBox(out);
 
-            if (guessedClass == TS.()) { // annot
+            if (guessedClass == TS.ReturnClass()) { // annot
                 correct++;
             }
         }
-        return ((float) correct / images.size());
+        return ((float) correct / trainingSamples.size());
     }
 
     public double[][] matToDoubleArray(Mat mat) {
@@ -456,7 +456,7 @@ public class NeuralNetwork implements Serializable {
             double[] out = layers.get(0).getOutput(inList);
 
             // Prepare the correct class label and true bounding box coordinates
-            int correctClass = TS.getLabel();
+            int correctClass = TS.ReturnClass();
             PascalVOCDataLoader.BoundingBox trueBoundingBox = TS.getBoundingBox();  // Assuming this method exists in Image class
 
             // Calculate the error
